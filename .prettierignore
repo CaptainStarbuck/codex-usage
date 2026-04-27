@@ -1,0 +1,4 @@
+# this file is required for ignores because the feature isn't supported in prettier.config.cjs yet.
+.git
+dist
+node_modules

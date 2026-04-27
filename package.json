@@ -1,0 +1,64 @@
+{
+    "name": "codex-usage",
+    "displayName": "CodexUsage",
+    "description": "A CLI tool to analyze and report on the usage of OpenAI's Codex.",
+    "version": "1.0.0",
+    "author": "@CaptainStarbuck (https://discord.gg/openai #codex-discussions)",
+    "license": "MIT",
+    "homepage": "https://github.com/CaptainStarbuck/codex-usage",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/CaptainStarbuck/codex-usage.git"
+    },
+    "bugs": {
+        "url": "https://github.com/CaptainStarbuck/codex-usage/issues"
+    },
+    "keywords": [
+        "codex",
+        "tokens",
+        "quota",
+        "usage",
+        "reporting"
+    ],
+    "private": true,
+    "type": "module",
+    "bin": {
+        "codex-usage": "/opt/codex/codex-usage/src/codex-usage.js"
+    },
+    "scripts": {
+        "run:install": "pnpm install",
+        "lint": "pnpm exec eslint",
+        "format:src": "pnpm exec prettier --config prettier.config.js --write \"src/**/*.{cjs,mjs,js,ts}\"",
+        "format:docs": "pnpm exec prettier --config prettier.config.js --write \"./*.md\" --write \"docs/**/*.md\""
+    },
+    "devDependencies": {
+        "@eslint/js": "^9.36.0",
+        "@eslint/json": "^0.14.0",
+        "@types/node": "^22.13.10",
+        "eslint-import-resolver-typescript": "^4.0.0",
+        "eslint-plugin-import": "^2.31.0",
+        "eslint-plugin-jsonc": "^2.20.1",
+        "eslint": "^9.30.1",
+        "fast-glob": "^3.3.3",
+        "globals": "^16.4.0",
+        "prettier": "^3.5.3",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.44.0"
+    },
+    "packageManager": "pnpm@10.25.0",
+    "pnpm": {
+        "allowedDeprecatedVersions": {
+            "glob": "<=7.2.3",
+            "inflight": "1.0.6",
+            "osenv": "0.1.5",
+            "raw-body": "1.1.7"
+        },
+        "ignoredBuiltDependencies": [
+            "esbuild"
+        ],
+        "onlyBuiltDependencies": [
+            "esbuild"
+        ],
+        "overrides": {}
+    }
+}

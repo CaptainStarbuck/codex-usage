@@ -1,0 +1,85 @@
+# Usage Analytics Report
+
+## Feature Overview
+
+The report turns local Codex session JSONL data into usage analytics for a rolling time window. It supports text, JSON, and standalone HTML output; optional interval regeneration; optional browser auto-refresh for HTML output; quota snapshot reporting; usage insights; model and session summaries; and opt-in local history capture.
+
+## Report Model
+
+The CLI builds one structured report object before rendering text, JSON, or HTML. The model contains:
+
+- `window` with `cutoff`, `now`, and `minutes`
+- `rows` with normalized event rows
+- `totals` with raw token totals, derived aggregate metrics, and derived rates
+- `quota` with the latest Codex rate limit snapshot when available
+- `sessions` with grouped session summaries
+- `models` with grouped model summaries
+- `insights` with warnings and notices
+- `metadata` with report generation details
+
+## Normalized Rows
+
+Each row includes the parsed event timestamp, model, intelligence level, source file, token fields, and derived metrics. Session identity comes from the JSONL filename. `turn_index` is the event position within the session and `seconds_since_previous` records elapsed seconds from the previous event in the same session.
+
+Rows are emitted only when `payload.info.total_token_usage` advances within a session. This keeps rate limit status refreshes that repeat the previous `last_token_usage` from increasing usage totals.
+
+## Quota
+
+The quota section is built from `event_msg` records whose `payload.type` is `token_count` and whose `payload.rate_limits` value is non-null. Each snapshot records the source file, session id, and event timestamp. The report displays the latest snapshot in the selected window, or the latest earlier snapshot from the scanned files.
+
+Quota limits include normalized used and remaining percentages, the raw `resets_at` Unix timestamp in seconds, and a local reset display string. Known windows are labeled `5h limit` for `300` minutes and `7d limit` for `10080` minutes.
+
+## Derived Metrics
+
+The report uses raw numeric fields in structured data and leaves rounding to renderers.
+
+- `raw_total_tokens` is the Codex-provided row total when available.
+- `observed_token_volume` sums input and output tokens for aggregate display.
+- `effective_input_tokens` subtracts cached input tokens from input tokens.
+- `visible_output_tokens` subtracts reasoning output tokens from output tokens.
+- `cache_hit_rate` divides cached input tokens by input tokens.
+- `reasoning_output_rate` divides reasoning output tokens by output tokens.
+
+## HTML Report
+
+The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains quota cards, summary cards, a stacked token timeline, warnings and notices, top sessions, top events, model summaries, and a sortable event table.
+
+The timeline uses inline SVG and stacks cached input, effective input, output, and reasoning output tokens. Browser titles on timeline bars include timestamp or bucket, session id, model, intelligence level, token values, and cache hit rate.
+
+The event table keeps the default visible columns focused on timestamp, session metadata, observed token volume, effective input tokens, cached input tokens, cache hit rate, output tokens, and reasoning output tokens. Raw totals, visible output, reasoning rate, input tokens, and source file path are available in expandable detail rows.
+
+Expanded rows and the active sort order are stored in browser `localStorage`, scoped to the report file path, Codex home, and report window length. This keeps the Events table stable across browser refreshes when regenerated reports still contain the same event rows.
+
+## Text And JSON Reports
+
+The text report is optimized for terminal review. It includes the selected window, quota details when available, aggregate totals, warnings and notices, session and model summaries, and a fixed-width event table.
+
+The JSON report emits the full structured report object. It is useful for piping into other tools, saving snapshots, or inspecting the raw normalized report data.
+
+## Insights
+
+Insights call attention to notable report conditions:
+
+- No usage events in the selected window.
+- No quota snapshot found.
+- Stale quota snapshot data.
+- Multiple active sessions in the selected window.
+- Unknown model or intelligence metadata.
+- Low cache hit rate for large input events.
+- Events over 100k observed token volume.
+- Model or intelligence changes inside a session.
+- Duplicate token count events ignored during normalization.
+
+## Interval Mode
+
+`--interval <seconds>` requires `--out` and repeatedly regenerates the selected output format. The first report is written immediately. Subsequent runs occur after each configured interval unless terminal input has requested shutdown. A keypress on the terminal stops the loop at the next interval boundary.
+
+For HTML interval output, `--force-refresh` embeds a page reload timer at `interval - 2` seconds. This lets a browser tab opened from the output file keep itself near the command's regenerated report cadence.
+
+## CLI Options
+
+The command supports `--minutes`, `--codex-home`, `--format`, `--out`, `--interval`, `--force-refresh`, `--save-history`, `--history`, `--help`, and `-h`. [cli-reference.md](./cli-reference.md) contains defaults, constraints, and examples.
+
+## History
+
+History is opt-in. `--save-history` appends a compact JSONL summary to `/opt/codex/data/codex-usage/history.jsonl`. `--history <path>` writes to a specific path and also enables capture. History paths must resolve under `/opt/codex` or `/tmp`.

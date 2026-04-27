@@ -1,0 +1,9 @@
+dist
+logs
+node_modules
+
+*.log
+.eslintcache
+.env
+.env.*
+!.env.example
