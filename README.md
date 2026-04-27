@@ -23,6 +23,20 @@ The report includes:
 - A sortable event table in the HTML report, with expandable details.
 - Optional compact JSONL history snapshots for local trend storage.
 
+<details>
+<summary>TUI Screenshot</summary>
+
+![screenshot-01-tui-html](docs/screenshot-01-tui.png)
+
+</details>
+
+<details>
+<summary>HTML Screenshot</summary>
+
+![screenshot-02-html](docs/screenshot-02-html.png)
+
+</details>
+
 ## How To Use It
 
 The command uses Node.js built-in modules only. No npm package installation is required to run the direct entry point.
