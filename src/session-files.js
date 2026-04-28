@@ -30,7 +30,7 @@ export async function findSessionFiles(codexHome, cutoff) {
  */
 async function walkJsonlFiles(dir, minMtime) {
     /** @type {import('node:fs').Dirent[]} */
-    let entries = [];
+    let entries;
 
     try {
         entries = await readdir(dir, { withFileTypes: true });
