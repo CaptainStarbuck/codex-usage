@@ -45,20 +45,5 @@
         "typescript": "^6.0.3",
         "typescript-eslint": "^8.59.1"
     },
-    "packageManager": "pnpm@10.25.0",
-    "pnpm": {
-        "allowedDeprecatedVersions": {
-            "glob": "<=7.2.3",
-            "inflight": "1.0.6",
-            "osenv": "0.1.5",
-            "raw-body": "1.1.7"
-        },
-        "ignoredBuiltDependencies": [
-            "esbuild"
-        ],
-        "onlyBuiltDependencies": [
-            "esbuild"
-        ],
-        "overrides": {}
-    }
+    "packageManager": "pnpm@10.33.2"
 }

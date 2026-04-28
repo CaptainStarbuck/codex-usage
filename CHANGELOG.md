@@ -3,6 +3,7 @@
 #### Changed
 
 - Updated development dependencies to current available releases.
+- Moved current PNPM install policy to workspace configuration.
 - Corrected project configuration comment typography.
 - Prep for v1.0.0
 
