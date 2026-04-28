@@ -2,6 +2,8 @@
 
 #### Changed
 
+- Updated development dependencies to current available releases.
+- Corrected project configuration comment typography.
 - Prep for v1.0.0
 
 #### Enhanced

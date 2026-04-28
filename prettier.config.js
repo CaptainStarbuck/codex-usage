@@ -6,7 +6,7 @@
 
 /*
 babel-ts might support JavaScript features (proposals) not yet supported by TypeScript,
-but it’s less permissive when it comes to invalid code and less battle-tested than the
+but it's less permissive when it comes to invalid code and less battle-tested than the
 typescript parser.
 */
 
