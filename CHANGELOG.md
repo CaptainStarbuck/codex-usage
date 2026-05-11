@@ -9,6 +9,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
 - Support for Windows: Added Windows-compatible path handling for configured folders, CLI paths, and package linking.
 - Added MIT License file.
+- Significant refactoring of report-html.js into smaller maintainable modules.
 
 ### 2026-05-11 / v1.0.4
 

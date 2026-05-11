@@ -80,6 +80,8 @@ The project uses Node.js built-in modules only. `package.json` exposes the `code
 - `src/report-renderer.js` dispatches the structured report to the text, JSON, or HTML renderer.
 - `src/history-writer.js` resolves history destinations and appends compact JSONL snapshots.
 
+HTML report rendering uses template assets under `src/html`. `src/report-html.js` reads `base.html`, replaces full-line stub comments with the refresh script, CSS, escaped report JSON, and browser JavaScript, then returns the complete standalone document.
+
 ## Source Aggregate Utility
 
 `src/aggregate.js` builds `src/aggregate.md`, a markdown document containing the JavaScript source files in `src`. The aggregate places `codex-usage.js` and `constants.js` first, then lists the remaining JavaScript files alphabetically. See [source-aggregate.md](./source-aggregate.md) for the command.
