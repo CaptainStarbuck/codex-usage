@@ -125,3 +125,7 @@ Remove the link later with `npm unlink --global codex-usage`.
 This is a new project and not used by many people yet.  
 Please discuss issues with @CaptainStarbuck in Discord OpenAI server, (https://discord.gg/openai) Channel #codex-discussions -  
 and/or create Issues for changes, fixes, and enhancements in https://github.com/CaptainStarbuck/codex-usage/issues.
+
+## License
+
+This package is licensed under the MIT License. See [LICENSE](./LICENSE).

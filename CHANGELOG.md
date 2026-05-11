@@ -8,6 +8,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 #### Enhanced
 
 - Support for Windows: Added Windows-compatible path handling for configured folders, CLI paths, and package linking.
+- Added MIT License file.
 
 ### 2026-05-11 / v1.0.4
 
