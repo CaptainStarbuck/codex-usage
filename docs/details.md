@@ -68,6 +68,8 @@ History capture is opt-in. `--save-history` appends one compact JSON object per 
 
 The CLI reads `.env` from the project root. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. The `--data-path` and `--codex-home` CLI options override these settings for a single run.
 
+Configured paths are joined, resolved, and displayed with native path rules. Windows drive, UNC, and backslash paths use Windows path rules so `.env` and CLI values such as `C:\Users\example` remain valid.
+
 ## Runtime
 
 The project uses Node.js built-in modules only. `package.json` exposes the `codex-usage` command with a `bin` entry that points directly at `src/codex-usage.js`.

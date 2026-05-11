@@ -1,6 +1,6 @@
 import { readdir, stat } from 'node:fs/promises';
-import { join } from 'node:path';
 import { SESSION_DIR_NAMES } from './constants.js';
+import { joinConfiguredPath } from './path-utils.js';
 
 /**
  * Finds Codex JSONL session files that were touched near the requested window.
@@ -13,7 +13,7 @@ export async function findSessionFiles(codexHome, cutoff) {
     const minMtime = cutoff.getTime() - 60 * 60 * 1000;
     const fileGroups = await Promise.all(
         SESSION_DIR_NAMES.map((dirName) =>
-            walkJsonlFiles(join(codexHome, dirName), minMtime)
+            walkJsonlFiles(joinConfiguredPath(codexHome, dirName), minMtime)
         )
     );
     const files = fileGroups.flat();
@@ -54,7 +54,7 @@ async function walkJsonlFiles(dir, minMtime) {
  * @returns {Promise<string[]>} Matching file paths for the entry.
  */
 async function collectJsonlEntryFiles(dir, entry, minMtime) {
-    const path = join(dir, entry.name);
+    const path = joinConfiguredPath(dir, entry.name);
     if (entry.isDirectory()) {
         return walkJsonlFiles(path, minMtime);
     }

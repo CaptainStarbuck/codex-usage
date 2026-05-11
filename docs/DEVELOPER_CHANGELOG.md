@@ -2,12 +2,19 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
+### 2026-05-11 / v1.0.5
+
+#### Enhanced
+
+- Added path helpers that preserve Windows drive, UNC, and backslash semantics for configured file and folder paths.
+- Updated configured path joins and path display helpers to use OS-aware path handling.
+- Changed the package `bin` entry from an absolute workspace path to a relative executable path.
+
 ### 2026-05-11 / v1.0.4
 
 #### Enhanced
 
 - Added `CODEX_HOME` parsing to the dotenv environment loader, including default fallback and `.codex` suffix normalization.
-- Updated package metadata and user documentation for v1.0.4.
 
 ### 2026-05-11 / v1.0.3
 

@@ -23,6 +23,13 @@ CODEX_HOME=
 
 History capture uses `DATA_PATH` when `--history` is not provided. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. Use `--data-path` or `--codex-home` to override these settings for a single run.
 
+Windows drive paths can be used in `.env`. Quote paths that contain spaces:
+
+```bash
+DATA_PATH="C:\Users\example\Codex Usage"
+CODEX_HOME="C:\Users\example"
+```
+
 ## First Run
 
 From the project root, run:
@@ -94,6 +101,12 @@ Use `--data-path` to choose the configured data folder for one run:
 
 ```bash
 node src/codex-usage.js --minutes 60 --save-history --data-path /tmp/codex-usage
+```
+
+On Windows, quote CLI paths that contain spaces:
+
+```bash
+node src/codex-usage.js --minutes 60 --save-history --data-path "C:\Users\example\Codex Usage" --codex-home "C:\Users\example"
 ```
 
 ## Next Reading

@@ -36,6 +36,13 @@ CODEX_HOME=
 
 `CODEX_HOME` selects the Codex home folder to scan. Leave it empty to use the current user's `.codex` folder. If the configured value does not include `.codex`, the command appends `.codex`. Use `--codex-home` to override `CODEX_HOME` for a single run.
 
+Windows drive paths are supported in `.env` and CLI options. Quotes are required when a path contains spaces:
+
+```bash
+DATA_PATH="C:\Users\example\Codex Usage"
+CODEX_HOME="C:\Users\example"
+```
+
 ## Validation
 
 - `--minutes` must be a positive integer.
@@ -100,4 +107,10 @@ Override `DATA_PATH` for one run:
 
 ```bash
 node src/codex-usage.js --minutes 60 --save-history --data-path /tmp/codex-usage
+```
+
+Use Windows paths for one run:
+
+```bash
+node src/codex-usage.js --minutes 60 --save-history --data-path "C:\Users\example\Codex Usage" --codex-home "C:\Users\example"
 ```

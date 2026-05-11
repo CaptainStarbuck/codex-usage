@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
-import { basename } from 'node:path';
 import { TOKEN_FIELDS } from './constants.js';
+import { basenameConfiguredPath } from './path-utils.js';
 import { readConfigDefaults } from './settings.js';
 
 /**
@@ -218,7 +218,7 @@ function readNumber(value) {
  * @returns {string} Session id.
  */
 function readSessionId(file) {
-    const name = basename(String(file ?? ''));
+    const name = basenameConfiguredPath(String(file ?? ''));
     return name.endsWith('.jsonl')
         ? name.slice(0, -'.jsonl'.length)
         : name || 'unknown';

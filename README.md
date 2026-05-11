@@ -1,4 +1,4 @@
-# codex-usage v1.0.4
+# codex-usage v1.0.5
 
 ## What This Project Does
 
@@ -61,6 +61,12 @@ Check updates for changes in `.env.example`.
 
 Data is written by default to /tmp (.env DATA_PATH).
 Codex session data is read from the current user's `.codex` folder by default, or from `.env` CODEX_HOME when configured.
+Windows drive paths are supported in `.env` and CLI options. Quote paths that contain spaces.
+
+```bash
+DATA_PATH="C:\Users\example\Codex Usage"
+CODEX_HOME="C:\Users\example"
+```
 
 ## Documentation
 

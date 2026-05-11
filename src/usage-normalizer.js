@@ -1,4 +1,4 @@
-import { basename } from 'node:path';
+import { basenameConfiguredPath } from './path-utils.js';
 import { DERIVED_TOKEN_FIELDS, TOKEN_FIELDS } from './constants.js';
 
 /**
@@ -131,7 +131,7 @@ function rate(numerator, denominator) {
  * @returns {string} Session id.
  */
 function readSessionId(file) {
-    const name = basename(String(file ?? ''));
+    const name = basenameConfiguredPath(String(file ?? ''));
     return name.endsWith('.jsonl')
         ? name.slice(0, -'.jsonl'.length)
         : name || 'unknown';

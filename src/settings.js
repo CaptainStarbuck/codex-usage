@@ -3,6 +3,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { DEFAULT_CODEX_HOME, DEFAULT_DATA_PATH } from './constants.js';
+import { hasConfiguredPathSegment, joinConfiguredPath } from './path-utils.js';
 
 const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
@@ -39,7 +40,7 @@ export async function readAppEnvironment(processEnv = process.env) {
  * @returns {Promise<{ model: string, intelligenceLevel: string }>} Default labels.
  */
 export async function readConfigDefaults(codexHome) {
-    const configPath = join(codexHome, 'config.toml');
+    const configPath = joinConfiguredPath(codexHome, 'config.toml');
     /** @type {{ model: string, intelligenceLevel: string }} */
     const defaults = { model: 'unknown', intelligenceLevel: 'unknown' };
 
@@ -152,11 +153,11 @@ function resolveCodexHomeSetting(value) {
 
     const trimmed = value.trim();
 
-    if (trimmed.includes('.codex')) {
+    if (hasConfiguredPathSegment(trimmed, '.codex')) {
         return trimmed;
     }
 
-    return join(trimmed, '.codex');
+    return joinConfiguredPath(trimmed, '.codex');
 }
 
 /**

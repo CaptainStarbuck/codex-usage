@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
 import {
     DEFAULT_DATA_PATH,
     DEFAULT_HISTORY_RELATIVE_PATH,
     DEFAULT_WINDOW_MINUTES,
 } from './constants.js';
+import {
+    dirnameConfiguredPath,
+    joinConfiguredPath,
+    resolveConfiguredPath,
+} from './path-utils.js';
 import { renderHtmlReport } from './report-html.js';
 import { renderJsonReport } from './report-json.js';
 import { renderTextReport } from './report-text.js';
@@ -387,7 +391,7 @@ async function appendHistory(report, historyPath) {
         quota: report.quota,
     };
 
-    await mkdir(dirname(safePath), { recursive: true });
+    await mkdir(dirnameConfiguredPath(safePath), { recursive: true });
     await appendFile(safePath, `${JSON.stringify(snapshot)}\n`, 'utf8');
 }
 
@@ -400,7 +404,7 @@ async function appendHistory(report, historyPath) {
 function getHistoryPath(options) {
     return (
         options.history ??
-        join(
+        joinConfiguredPath(
             options.dataPath ?? DEFAULT_DATA_PATH,
             DEFAULT_HISTORY_RELATIVE_PATH
         )
@@ -414,7 +418,7 @@ function getHistoryPath(options) {
  * @returns {string} Absolute history path.
  */
 function resolveHistoryPath(historyPath) {
-    return resolve(historyPath);
+    return resolveConfiguredPath(historyPath);
 }
 
 main().catch((error) => {
