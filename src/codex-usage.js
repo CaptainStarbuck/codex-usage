@@ -3,7 +3,6 @@
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import {
-    DEFAULT_CODEX_HOME,
     DEFAULT_DATA_PATH,
     DEFAULT_HISTORY_RELATIVE_PATH,
     DEFAULT_WINDOW_MINUTES,
@@ -17,7 +16,7 @@ import { buildUsageReport } from './usage-metrics.js';
 
 /**
  * @typedef {object} RuntimeOptions
- * @property {string} codexHome Codex home folder to scan.
+ * @property {string | undefined} codexHome Codex home folder to scan.
  * @property {string | undefined} dataPath Root folder used for app-managed data files.
  * @property {boolean} forceRefresh Whether HTML output should include the calculated refresh timer.
  * @property {string} format Output format.
@@ -37,7 +36,7 @@ import { buildUsageReport } from './usage-metrics.js';
 function parseArgs(args) {
     /** @type {RuntimeOptions} */
     const options = {
-        codexHome: DEFAULT_CODEX_HOME,
+        codexHome: undefined,
         dataPath: undefined,
         forceRefresh: false,
         format: 'text',
@@ -211,6 +210,7 @@ async function loadRuntimeOptions(options) {
 
     return {
         ...options,
+        codexHome: options.codexHome ?? environment.codexHome,
         dataPath: options.dataPath ?? environment.dataPath,
     };
 }

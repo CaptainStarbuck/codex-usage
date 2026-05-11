@@ -2,12 +2,13 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { DEFAULT_DATA_PATH } from './constants.js';
+import { DEFAULT_CODEX_HOME, DEFAULT_DATA_PATH } from './constants.js';
 
 const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
 /**
  * @typedef {object} AppEnvironment
+ * @property {string} codexHome Codex home folder to scan.
  * @property {string} dataPath Root folder used for app-managed data files.
  */
 
@@ -19,10 +20,14 @@ const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
  */
 export async function readAppEnvironment(processEnv = process.env) {
     const fileEnv = await readDotEnvFile(join(PROJECT_ROOT, '.env'));
+    const codexHome = resolveCodexHomeSetting(
+        readSettingValue('CODEX_HOME', fileEnv, processEnv)
+    );
     const dataPath =
         readSettingValue('DATA_PATH', fileEnv, processEnv) ?? DEFAULT_DATA_PATH;
 
     return {
+        codexHome,
         dataPath,
     };
 }
@@ -132,6 +137,26 @@ function unwrapEnvValue(value) {
     }
 
     return trimmed;
+}
+
+/**
+ * Resolves a configured Codex home folder, appending `.codex` when needed.
+ *
+ * @param {string | undefined} value Configured Codex home value.
+ * @returns {string} Codex home folder.
+ */
+function resolveCodexHomeSetting(value) {
+    if (!value || value.trim() === '') {
+        return DEFAULT_CODEX_HOME;
+    }
+
+    const trimmed = value.trim();
+
+    if (trimmed.includes('.codex')) {
+        return trimmed;
+    }
+
+    return join(trimmed, '.codex');
 }
 
 /**

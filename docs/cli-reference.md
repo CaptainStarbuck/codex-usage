@@ -13,7 +13,7 @@ Use `--help` or `-h` to print command help.
 | Option            | Value                     | Default                                                          | Description                                                                                                                                                        |
 | ----------------- | ------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `--minutes`       | Positive integer minutes  | `15`                                                             | Selects the report window. The command includes usage events from the previous N minutes.                                                                          |
-| `--codex-home`    | Folder path               | Current user's `.codex` folder                                   | Selects the Codex home folder to scan for session JSONL files.                                                                                                     |
+| `--codex-home`    | Folder path               | `CODEX_HOME` from `.env`, or current user's `.codex` folder      | Selects the Codex home folder to scan for session JSONL files.                                                                                                     |
 | `--data-path`     | Folder path               | `DATA_PATH` from `.env`, or `/tmp`                               | Overrides `DATA_PATH` for app-managed data files, including the default local history file.                                                                        |
 | `--format`        | `text`, `json`, or `html` | `text`                                                           | Selects the output renderer.                                                                                                                                       |
 | `--out`           | File path                 | Standard output                                                  | Writes the rendered report to a file instead of standard output.                                                                                                   |
@@ -29,9 +29,12 @@ The command reads `.env` from the project root. `.env.example` contains the supp
 
 ```bash
 DATA_PATH=/tmp
+CODEX_HOME=
 ```
 
 `DATA_PATH` is the base folder for app-managed data. When history capture is enabled and `--history` is not provided, the command appends to `data/codex-usage/history.jsonl` under `DATA_PATH`. Use `--data-path` to override `DATA_PATH` for a single run.
+
+`CODEX_HOME` selects the Codex home folder to scan. Leave it empty to use the current user's `.codex` folder. If the configured value does not include `.codex`, the command appends `.codex`. Use `--codex-home` to override `CODEX_HOME` for a single run.
 
 ## Validation
 

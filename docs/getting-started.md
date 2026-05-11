@@ -14,13 +14,14 @@ The direct CLI entry point uses only Node.js built-in modules.
 
 ## Configuration
 
-Copy `.env.example` to `.env` if the file is not present, then set `DATA_PATH` to the folder used for app-managed data files:
+Copy `.env.example` to `.env` if the file is not present, then set local folder preferences:
 
 ```bash
 DATA_PATH=/tmp
+CODEX_HOME=
 ```
 
-History capture uses this folder when `--history` is not provided. Use `--data-path` to override `DATA_PATH` for a single run.
+History capture uses `DATA_PATH` when `--history` is not provided. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. Use `--data-path` or `--codex-home` to override these settings for a single run.
 
 ## First Run
 
@@ -30,7 +31,7 @@ From the project root, run:
 node src/codex-usage.js
 ```
 
-The default report scans the current user's Codex home folder and shows usage from the previous 15 minutes in text format.
+The default report scans the configured Codex home folder and shows usage from the previous 15 minutes in text format.
 
 ## Choose A Time Window
 

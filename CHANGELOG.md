@@ -3,6 +3,12 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+### 2026-05-11 / v1.0.4
+
+#### Enhanced
+
+- Added `CODEX_HOME` configuration for the default Codex session folder.
+
 ### 2026-05-11 / v1.0.3
 
 #### Enhanced
