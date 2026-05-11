@@ -26,14 +26,6 @@ All changelog updates are added to the bottom of the current date/version sectio
 
 In this project the `docs` folder is intended for project contributors. It describes how things work and where in the code the functionality is implemented. `docs` files contain the enduring reference material to events noted in DEVELOPER_CHANGELOG.md and CHANGELOG.md.
 
-## Pre-Development
-
-Before writing now code, use `pnpm run build` to identify existing issues.
-
-Only fix simple issues that are outside of the task scope.
-
-Continue with linting when the build is clean.
-
 ## Linting
 
 Ignore this section for documentation-only tasks.
