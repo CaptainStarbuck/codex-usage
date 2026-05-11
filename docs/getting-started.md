@@ -14,7 +14,7 @@ The direct CLI entry point uses only Node.js built-in modules.
 
 ## Configuration
 
-Copy `.env.example` to `.env` if the file is not present, then set local folder preferences:
+The command creates `.env` from `.env.example` when `.env` is not present. Set local folder preferences in `.env`:
 
 ```bash
 DATA_PATH=/tmp

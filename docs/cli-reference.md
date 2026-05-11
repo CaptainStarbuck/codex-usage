@@ -25,7 +25,7 @@ Use `--help` or `-h` to print command help.
 
 ## Configuration
 
-The command reads `.env` from the project root. `.env.example` contains the supported configuration values:
+The command reads `.env` from the project root. When `.env` is not present, the command copies `.env.example` to `.env` before reading settings. `.env.example` contains the supported configuration values:
 
 ```bash
 DATA_PATH=/tmp

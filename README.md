@@ -1,4 +1,4 @@
-# codex-usage v1.0.5
+# codex-usage v1.1.0
 
 ## What This Project Does
 
@@ -10,6 +10,10 @@ Use it when you want to answer questions such as:
 - Which sessions, models, or turns contributed the most usage?
 - What Codex quota snapshot was visible in recent session data?
 - Are there usage patterns worth noticing, such as duplicate token count events, stale quota data, large events, or missing metadata?
+
+## Changelog
+
+See CHANGELOG.md and docs for information about version updates.
 
 ## What You Will See
 
@@ -54,8 +58,7 @@ Options include:
 
 ## .env **_New in v1.1_**
 
-Override default folders and settings in `.env`.  
-Check updates for changes in `.env.example`.
+Override default folders and settings in `.env`, now created for you. Check updates for changes in `.env.example`.
 
 ## Data folders
 

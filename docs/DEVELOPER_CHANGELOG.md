@@ -11,6 +11,7 @@ These are details about other changes, and trivial details that don't warrant a 
 - Changed the package `bin` entry from an absolute workspace path to a relative executable path.
 - Refactored runtime report generation, renderer selection, history writing, and interval loop handling out of `src/codex-usage.js` into focused modules.
 - Updated `renderHtmlReport()` to assemble the standalone dashboard from `src/html` template, CSS, and browser script assets.
+- Added `.env` creation from `.env.example` inside the dotenv loader when the local file is missing.
 
 #### Changed
 

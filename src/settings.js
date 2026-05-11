@@ -1,4 +1,5 @@
-import { readFile } from 'node:fs/promises';
+import { constants as fsConstants } from 'node:fs';
+import { copyFile, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -67,9 +68,54 @@ async function readDotEnvFile(configPath) {
     try {
         const text = await readFile(configPath, 'utf8');
         return parseDotEnv(text);
+    } catch (error) {
+        if (!isNodeFileError(error, 'ENOENT')) {
+            return {};
+        }
+
+        return readCreatedDotEnvFile(configPath);
+    }
+}
+
+/**
+ * Creates a missing `.env` file from `.env.example`, then parses `.env`.
+ *
+ * @param {string} configPath Dotenv file path.
+ * @returns {Promise<Record<string, string>>} Parsed settings.
+ */
+async function readCreatedDotEnvFile(configPath) {
+    const examplePath = join(PROJECT_ROOT, '.env.example');
+
+    try {
+        await copyFile(examplePath, configPath, fsConstants.COPYFILE_EXCL);
+    } catch (error) {
+        if (!isNodeFileError(error, 'EEXIST')) {
+            return {};
+        }
+    }
+
+    try {
+        const text = await readFile(configPath, 'utf8');
+        return parseDotEnv(text);
     } catch {
         return {};
     }
+}
+
+/**
+ * Checks whether a caught error is a Node.js file-system error with a code.
+ *
+ * @param {unknown} error Caught error value.
+ * @param {string} code Expected Node.js error code.
+ * @returns {boolean} Whether the error has the expected code.
+ */
+function isNodeFileError(error, code) {
+    return (
+        typeof error === 'object' &&
+        error !== null &&
+        'code' in error &&
+        error.code === code
+    );
 }
 
 /**

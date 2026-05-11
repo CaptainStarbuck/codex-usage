@@ -66,7 +66,7 @@ History capture is opt-in. `--save-history` appends one compact JSON object per 
 
 ## Configuration
 
-The CLI reads `.env` from the project root. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. The `--data-path` and `--codex-home` CLI options override these settings for a single run.
+The CLI reads `.env` from the project root. When `.env` is not present, the CLI copies `.env.example` to `.env` before reading settings. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. The `--data-path` and `--codex-home` CLI options override these settings for a single run.
 
 Configured paths are joined, resolved, and displayed with native path rules. Windows drive, UNC, and backslash paths use Windows path rules so `.env` and CLI values such as `C:\Users\example` remain valid.
 
@@ -76,7 +76,7 @@ The project uses Node.js built-in modules only. `package.json` exposes the `code
 
 The project source is organized into focused files:
 
-- `.env.example` shows the supported local configuration values. Copy it to `.env` for local configuration.
+- `.env.example` shows the supported local configuration values and seeds `.env` when the local file is not present.
 - `src/codex-usage.js` is the direct CLI entry point for argument parsing, help text, environment defaults, and startup mode selection.
 - `src/usage-runner.js` coordinates report generation for one-time and interval runs.
 - `src/report-renderer.js` selects the text, JSON, or HTML report renderer for the structured report.
