@@ -1,5 +1,31 @@
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { DEFAULT_DATA_PATH } from './constants.js';
+
+const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+
+/**
+ * @typedef {object} AppEnvironment
+ * @property {string} dataPath Root folder used for app-managed data files.
+ */
+
+/**
+ * Reads app environment settings from `.env` and the current process environment.
+ *
+ * @param {NodeJS.ProcessEnv} [processEnv] Environment variables supplied by the shell.
+ * @returns {Promise<AppEnvironment>} Runtime environment settings.
+ */
+export async function readAppEnvironment(processEnv = process.env) {
+    const fileEnv = await readDotEnvFile(join(PROJECT_ROOT, '.env'));
+    const dataPath =
+        readSettingValue('DATA_PATH', fileEnv, processEnv) ?? DEFAULT_DATA_PATH;
+
+    return {
+        dataPath,
+    };
+}
 
 /**
  * Reads default model settings from Codex config when session metadata omits them.
@@ -23,6 +49,89 @@ export async function readConfigDefaults(codexHome) {
     }
 
     return defaults;
+}
+
+/**
+ * Reads a dotenv-style file as key/value settings.
+ *
+ * @param {string} configPath Dotenv file path.
+ * @returns {Promise<Record<string, string>>} Parsed settings.
+ */
+async function readDotEnvFile(configPath) {
+    try {
+        const text = await readFile(configPath, 'utf8');
+        return parseDotEnv(text);
+    } catch {
+        return {};
+    }
+}
+
+/**
+ * Parses simple dotenv content without requiring a runtime dependency.
+ *
+ * @param {string} text Dotenv file contents.
+ * @returns {Record<string, string>} Parsed settings.
+ */
+function parseDotEnv(text) {
+    /** @type {Record<string, string>} */
+    const settings = {};
+
+    for (const line of text.split(/\r?\n/u)) {
+        const match = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/u.exec(line);
+
+        if (!match || match[1].startsWith('#')) {
+            continue;
+        }
+
+        settings[match[1]] = unwrapEnvValue(match[2]);
+    }
+
+    return settings;
+}
+
+/**
+ * Chooses a setting value from process environment first, then `.env`.
+ *
+ * @param {string} key Setting name.
+ * @param {Record<string, string>} fileEnv Values loaded from `.env`.
+ * @param {NodeJS.ProcessEnv} processEnv Values supplied by the shell.
+ * @returns {string | undefined} Selected setting value.
+ */
+function readSettingValue(key, fileEnv, processEnv) {
+    const processValue = processEnv[key];
+
+    if (processValue && processValue.trim() !== '') {
+        return processValue;
+    }
+
+    const fileValue = fileEnv[key];
+
+    if (fileValue && fileValue.trim() !== '') {
+        return fileValue;
+    }
+
+    return undefined;
+}
+
+/**
+ * Removes optional matching quotes around an environment value.
+ *
+ * @param {string} value Raw environment value.
+ * @returns {string} Unquoted value.
+ */
+function unwrapEnvValue(value) {
+    const trimmed = value.trim();
+    const quote = trimmed[0];
+
+    if (
+        (quote === '"' || quote === "'") &&
+        trimmed.endsWith(quote) &&
+        trimmed.length >= 2
+    ) {
+        return trimmed.slice(1, -1);
+    }
+
+    return trimmed;
 }
 
 /**

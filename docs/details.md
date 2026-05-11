@@ -62,7 +62,11 @@ Each interval run uses a fresh `now` and cutoff time, so a command such as `--mi
 
 ## History
 
-History capture is opt-in. `--save-history` appends one compact JSON object per run to `/opt/codex/data/codex-usage/history.jsonl`. `--history <path>` appends to the provided path and enables history capture.
+History capture is opt-in. `--save-history` appends one compact JSON object per run to `data/codex-usage/history.jsonl` under `DATA_PATH`. `--history <path>` appends to the provided path and enables history capture.
+
+## Configuration
+
+The CLI reads `.env` from the project root. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file.
 
 ## Runtime
 

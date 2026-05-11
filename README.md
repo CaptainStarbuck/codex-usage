@@ -1,4 +1,4 @@
-# codex-usage
+# codex-usage v1.0.2
 
 ## What This Project Does
 
@@ -23,19 +23,13 @@ The report includes:
 - A sortable event table in the HTML report, with expandable details.
 - Optional compact JSONL history snapshots for local trend storage.
 
-<details>
-<summary>TUI Screenshot</summary>
+### TUI Screenshot
 
 ![screenshot-01-tui-html](docs/screenshot-01-tui.png)
 
-</details>
-
-<details>
-<summary>HTML Screenshot</summary>
+### HTML Screenshot
 
 ![screenshot-02-html](docs/screenshot-02-html.png)
-
-</details>
 
 ## How To Use It
 
@@ -50,6 +44,12 @@ node src/codex-usage.js
 For the smooth first-time path, read [docs/getting-started.md](./docs/getting-started.md). For the full command reference, read [docs/cli-reference.md](./docs/cli-reference.md).
 
 ## Common Commands
+
+**_New in v1.1_** Configure the app-managed data folder in `.env` (copy from `.env.example`):
+
+```bash
+DATA_PATH=/tmp
+```
 
 Run a different time window. Includes data from the previous N minutes:
 
@@ -93,6 +93,7 @@ Start with [docs/index.md](./docs/index.md), which links to:
 
 ## Project Files
 
+- `.env.example` **_New in v1.1_** shows the supported local configuration values. Copy to .env for first time usage and update .env as required when new env options are added.
 - `src/codex-usage.js` is the direct CLI entry point and application flow coordinator.
 - `src/session-files.js` finds recent Codex session files.
 - `src/session-parser.js` extracts token usage events, rate limit snapshots, and model metadata.

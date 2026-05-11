@@ -12,6 +12,16 @@
 
 The direct CLI entry point uses only Node.js built-in modules.
 
+## Configuration
+
+Copy `.env.example` to `.env` if the file is not present, then set `DATA_PATH` to the folder used for app-managed data files:
+
+```bash
+DATA_PATH=/tmp
+```
+
+History capture uses this folder when `--history` is not provided.
+
 ## First Run
 
 From the project root, run:
@@ -78,7 +88,7 @@ History capture appends one compact JSON object per run:
 node src/codex-usage.js --minutes 60 --save-history
 ```
 
-The default history file is `/opt/codex/data/codex-usage/history.jsonl`. Use `--history` to choose another path:
+The default history file is `data/codex-usage/history.jsonl` under `DATA_PATH`. Use `--history` to choose another path:
 
 ```bash
 node src/codex-usage.js --minutes 60 --history /tmp/codex-usage-history.jsonl

@@ -1,8 +1,13 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
+export const DEFAULT_DATA_PATH = '/tmp';
 export const DEFAULT_CODEX_HOME = join(homedir(), '.codex');
-export const DEFAULT_HISTORY_PATH = '/opt/codex/data/codex-usage/history.jsonl';
+export const DEFAULT_HISTORY_RELATIVE_PATH = join(
+    'data',
+    'codex-usage',
+    'history.jsonl'
+);
 export const DEFAULT_WINDOW_MINUTES = 15;
 export const SESSION_DIR_NAMES = ['sessions', 'archived_sessions'];
 export const TOKEN_FIELDS = [

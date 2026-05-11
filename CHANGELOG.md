@@ -1,8 +1,20 @@
+# Changelog
+
+These are functional changes to the package, worthy of note to users.  
+More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
+
+### 2026-05-11 / v1.0.2
+
+#### Enhanced
+
+- Added .env.example with `DATA_PATH=/tmp` configuration for the default local history storage location. Copy to .env and modify.
+- Added DEVELOPER_CHANGELOG.md to docs and index.
+
 ### 2026-05-11 / v1.0.1
 
-- Removed the fixed workspace allow-list for history output paths. This was an initial development restriction that prevented codex from writing outside of a system-specific sandbox. It's not necessary with the new DATA_PATH.
-
 #### Changed
+
+- Removed the fixed workspace allow-list for history output paths.
 
 ### 2026-04-27 / v1.0.0
 

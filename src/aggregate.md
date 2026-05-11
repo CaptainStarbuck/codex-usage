@@ -4,21 +4,24 @@ Source file: `src/codex-usage.js`.
 #!/usr/bin/env node
 
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import {
     DEFAULT_CODEX_HOME,
-    DEFAULT_HISTORY_PATH,
+    DEFAULT_DATA_PATH,
+    DEFAULT_HISTORY_RELATIVE_PATH,
     DEFAULT_WINDOW_MINUTES,
 } from './constants.js';
 import { renderHtmlReport } from './report-html.js';
 import { renderJsonReport } from './report-json.js';
 import { renderTextReport } from './report-text.js';
+import { readAppEnvironment } from './settings.js';
 import { loadUsageData } from './usage-loader.js';
 import { buildUsageReport } from './usage-metrics.js';
 
 /**
  * @typedef {object} RuntimeOptions
  * @property {string} codexHome Codex home folder to scan.
+ * @property {string} dataPath Root folder used for app-managed data files.
  * @property {boolean} forceRefresh Whether HTML output should include the calculated refresh timer.
  * @property {string} format Output format.
  * @property {string | undefined} history Optional history output path.
@@ -38,6 +41,7 @@ function parseArgs(args) {
     /** @type {RuntimeOptions} */
     const options = {
         codexHome: DEFAULT_CODEX_HOME,
+        dataPath: DEFAULT_DATA_PATH,
         forceRefresh: false,
         format: 'text',
         history: undefined,
@@ -149,7 +153,7 @@ Use --force-refresh with HTML interval output to make the browser refresh at int
  * @returns {Promise<void>} Resolves after the command finishes.
  */
 async function main() {
-    const options = parseArgs(process.argv.slice(2));
+    const options = await loadRuntimeOptions(parseArgs(process.argv.slice(2)));
 
     if (options.interval !== undefined) {
         await runInterval(options);
@@ -182,7 +186,7 @@ async function runOnce(options) {
     const output = renderReport(report, options);
 
     if (options.saveHistory) {
-        await appendHistory(report, options.history ?? DEFAULT_HISTORY_PATH);
+        await appendHistory(report, getHistoryPath(options));
     }
 
     if (options.out) {
@@ -191,6 +195,21 @@ async function runOnce(options) {
     }
 
     process.stdout.write(output);
+}
+
+/**
+ * Reads environment settings and merges them into parsed CLI options.
+ *
+ * @param {RuntimeOptions} options Parsed runtime options.
+ * @returns {Promise<RuntimeOptions>} Runtime options with environment defaults.
+ */
+async function loadRuntimeOptions(options) {
+    const environment = await readAppEnvironment();
+
+    return {
+        ...options,
+        dataPath: environment.dataPath,
+    };
 }
 
 /**
@@ -370,6 +389,18 @@ async function appendHistory(report, historyPath) {
 }
 
 /**
+ * Gets the configured history path for a report run.
+ *
+ * @param {RuntimeOptions} options Runtime options.
+ * @returns {string} Explicit or default history path.
+ */
+function getHistoryPath(options) {
+    return (
+        options.history ?? join(options.dataPath, DEFAULT_HISTORY_RELATIVE_PATH)
+    );
+}
+
+/**
  * Resolves a history path to its absolute destination.
  *
  * @param {string} historyPath User-provided or default path.
@@ -391,8 +422,13 @@ Source file: `src/constants.js`.
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
+export const DEFAULT_DATA_PATH = '/tmp';
 export const DEFAULT_CODEX_HOME = join(homedir(), '.codex');
-export const DEFAULT_HISTORY_PATH = '/opt/codex/data/codex-usage/history.jsonl';
+export const DEFAULT_HISTORY_RELATIVE_PATH = join(
+    'data',
+    'codex-usage',
+    'history.jsonl'
+);
 export const DEFAULT_WINDOW_MINUTES = 15;
 export const SESSION_DIR_NAMES = ['sessions', 'archived_sessions'];
 export const TOKEN_FIELDS = [
@@ -1813,7 +1849,33 @@ function readSessionId(file) {
 Source file: `src/settings.js`.
 ```javascript
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+import { DEFAULT_DATA_PATH } from './constants.js';
+
+const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
+
+/**
+ * @typedef {object} AppEnvironment
+ * @property {string} dataPath Root folder used for app-managed data files.
+ */
+
+/**
+ * Reads app environment settings from `.env` and the current process environment.
+ *
+ * @param {NodeJS.ProcessEnv} [processEnv] Environment variables supplied by the shell.
+ * @returns {Promise<AppEnvironment>} Runtime environment settings.
+ */
+export async function readAppEnvironment(processEnv = process.env) {
+    const fileEnv = await readDotEnvFile(join(PROJECT_ROOT, '.env'));
+    const dataPath =
+        readSettingValue('DATA_PATH', fileEnv, processEnv) ?? DEFAULT_DATA_PATH;
+
+    return {
+        dataPath,
+    };
+}
 
 /**
  * Reads default model settings from Codex config when session metadata omits them.
@@ -1837,6 +1899,89 @@ export async function readConfigDefaults(codexHome) {
     }
 
     return defaults;
+}
+
+/**
+ * Reads a dotenv-style file as key/value settings.
+ *
+ * @param {string} configPath Dotenv file path.
+ * @returns {Promise<Record<string, string>>} Parsed settings.
+ */
+async function readDotEnvFile(configPath) {
+    try {
+        const text = await readFile(configPath, 'utf8');
+        return parseDotEnv(text);
+    } catch {
+        return {};
+    }
+}
+
+/**
+ * Parses simple dotenv content without requiring a runtime dependency.
+ *
+ * @param {string} text Dotenv file contents.
+ * @returns {Record<string, string>} Parsed settings.
+ */
+function parseDotEnv(text) {
+    /** @type {Record<string, string>} */
+    const settings = {};
+
+    for (const line of text.split(/\r?\n/u)) {
+        const match = /^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/u.exec(line);
+
+        if (!match || match[1].startsWith('#')) {
+            continue;
+        }
+
+        settings[match[1]] = unwrapEnvValue(match[2]);
+    }
+
+    return settings;
+}
+
+/**
+ * Chooses a setting value from process environment first, then `.env`.
+ *
+ * @param {string} key Setting name.
+ * @param {Record<string, string>} fileEnv Values loaded from `.env`.
+ * @param {NodeJS.ProcessEnv} processEnv Values supplied by the shell.
+ * @returns {string | undefined} Selected setting value.
+ */
+function readSettingValue(key, fileEnv, processEnv) {
+    const processValue = processEnv[key];
+
+    if (processValue && processValue.trim() !== '') {
+        return processValue;
+    }
+
+    const fileValue = fileEnv[key];
+
+    if (fileValue && fileValue.trim() !== '') {
+        return fileValue;
+    }
+
+    return undefined;
+}
+
+/**
+ * Removes optional matching quotes around an environment value.
+ *
+ * @param {string} value Raw environment value.
+ * @returns {string} Unquoted value.
+ */
+function unwrapEnvValue(value) {
+    const trimmed = value.trim();
+    const quote = trimmed[0];
+
+    if (
+        (quote === '"' || quote === "'") &&
+        trimmed.endsWith(quote) &&
+        trimmed.length >= 2
+    ) {
+        return trimmed.slice(1, -1);
+    }
+
+    return trimmed;
 }
 
 /**

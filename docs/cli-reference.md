@@ -10,17 +10,27 @@ Use `--help` or `-h` to print command help.
 
 ## Options
 
-| Option            | Value                     | Default                                                           | Description                                                                                                                                                        |
-| ----------------- | ------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--minutes`       | Positive integer minutes  | `15`                                                              | Selects the report window. The command includes usage events from the previous N minutes.                                                                          |
-| `--codex-home`    | Folder path               | Current user's `.codex` folder                                    | Selects the Codex home folder to scan for session JSONL files.                                                                                                     |
-| `--format`        | `text`, `json`, or `html` | `text`                                                            | Selects the output renderer.                                                                                                                                       |
-| `--out`           | File path                 | Standard output                                                   | Writes the rendered report to a file instead of standard output.                                                                                                   |
-| `--interval`      | Positive integer seconds  | Disabled                                                          | Regenerates the report repeatedly. Requires `--out` so each run has a destination file.                                                                            |
-| `--force-refresh` | Flag                      | Disabled                                                          | For HTML interval output, embeds a browser refresh timer of `interval - 2` seconds. Requires `--format html`, `--interval`, and an interval of at least 3 seconds. |
-| `--save-history`  | Flag                      | Disabled                                                          | Appends a compact JSONL history snapshot to `/opt/codex/data/codex-usage/history.jsonl`.                                                                           |
-| `--history`       | File path                 | `/opt/codex/data/codex-usage/history.jsonl` when history is saved | Appends history to a specific path and enables history capture.                                                                                                    |
-| `--help`, `-h`    | Flag                      | Disabled                                                          | Prints command usage and exits.                                                                                                                                    |
+| Option            | Value                     | Default                                                          | Description                                                                                                                                                        |
+| ----------------- | ------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--minutes`       | Positive integer minutes  | `15`                                                             | Selects the report window. The command includes usage events from the previous N minutes.                                                                          |
+| `--codex-home`    | Folder path               | Current user's `.codex` folder                                   | Selects the Codex home folder to scan for session JSONL files.                                                                                                     |
+| `--format`        | `text`, `json`, or `html` | `text`                                                           | Selects the output renderer.                                                                                                                                       |
+| `--out`           | File path                 | Standard output                                                  | Writes the rendered report to a file instead of standard output.                                                                                                   |
+| `--interval`      | Positive integer seconds  | Disabled                                                         | Regenerates the report repeatedly. Requires `--out` so each run has a destination file.                                                                            |
+| `--force-refresh` | Flag                      | Disabled                                                         | For HTML interval output, embeds a browser refresh timer of `interval - 2` seconds. Requires `--format html`, `--interval`, and an interval of at least 3 seconds. |
+| `--save-history`  | Flag                      | Disabled                                                         | Appends a compact JSONL history snapshot to `data/codex-usage/history.jsonl` under `DATA_PATH`.                                                                    |
+| `--history`       | File path                 | `DATA_PATH/data/codex-usage/history.jsonl` when history is saved | Appends history to a specific path and enables history capture.                                                                                                    |
+| `--help`, `-h`    | Flag                      | Disabled                                                         | Prints command usage and exits.                                                                                                                                    |
+
+## Configuration
+
+The command reads `.env` from the project root. `.env.example` contains the supported configuration values:
+
+```bash
+DATA_PATH=/tmp
+```
+
+`DATA_PATH` is the base folder for app-managed data. When history capture is enabled and `--history` is not provided, the command appends to `data/codex-usage/history.jsonl` under `DATA_PATH`.
 
 ## Validation
 

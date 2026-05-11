@@ -1,21 +1,24 @@
 #!/usr/bin/env node
 
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import {
     DEFAULT_CODEX_HOME,
-    DEFAULT_HISTORY_PATH,
+    DEFAULT_DATA_PATH,
+    DEFAULT_HISTORY_RELATIVE_PATH,
     DEFAULT_WINDOW_MINUTES,
 } from './constants.js';
 import { renderHtmlReport } from './report-html.js';
 import { renderJsonReport } from './report-json.js';
 import { renderTextReport } from './report-text.js';
+import { readAppEnvironment } from './settings.js';
 import { loadUsageData } from './usage-loader.js';
 import { buildUsageReport } from './usage-metrics.js';
 
 /**
  * @typedef {object} RuntimeOptions
  * @property {string} codexHome Codex home folder to scan.
+ * @property {string} dataPath Root folder used for app-managed data files.
  * @property {boolean} forceRefresh Whether HTML output should include the calculated refresh timer.
  * @property {string} format Output format.
  * @property {string | undefined} history Optional history output path.
@@ -35,6 +38,7 @@ function parseArgs(args) {
     /** @type {RuntimeOptions} */
     const options = {
         codexHome: DEFAULT_CODEX_HOME,
+        dataPath: DEFAULT_DATA_PATH,
         forceRefresh: false,
         format: 'text',
         history: undefined,
@@ -146,7 +150,7 @@ Use --force-refresh with HTML interval output to make the browser refresh at int
  * @returns {Promise<void>} Resolves after the command finishes.
  */
 async function main() {
-    const options = parseArgs(process.argv.slice(2));
+    const options = await loadRuntimeOptions(parseArgs(process.argv.slice(2)));
 
     if (options.interval !== undefined) {
         await runInterval(options);
@@ -179,7 +183,7 @@ async function runOnce(options) {
     const output = renderReport(report, options);
 
     if (options.saveHistory) {
-        await appendHistory(report, options.history ?? DEFAULT_HISTORY_PATH);
+        await appendHistory(report, getHistoryPath(options));
     }
 
     if (options.out) {
@@ -188,6 +192,21 @@ async function runOnce(options) {
     }
 
     process.stdout.write(output);
+}
+
+/**
+ * Reads environment settings and merges them into parsed CLI options.
+ *
+ * @param {RuntimeOptions} options Parsed runtime options.
+ * @returns {Promise<RuntimeOptions>} Runtime options with environment defaults.
+ */
+async function loadRuntimeOptions(options) {
+    const environment = await readAppEnvironment();
+
+    return {
+        ...options,
+        dataPath: environment.dataPath,
+    };
 }
 
 /**
@@ -364,6 +383,18 @@ async function appendHistory(report, historyPath) {
 
     await mkdir(dirname(safePath), { recursive: true });
     await appendFile(safePath, `${JSON.stringify(snapshot)}\n`, 'utf8');
+}
+
+/**
+ * Gets the configured history path for a report run.
+ *
+ * @param {RuntimeOptions} options Runtime options.
+ * @returns {string} Explicit or default history path.
+ */
+function getHistoryPath(options) {
+    return (
+        options.history ?? join(options.dataPath, DEFAULT_HISTORY_RELATIVE_PATH)
+    );
 }
 
 /**
