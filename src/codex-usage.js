@@ -1,25 +1,11 @@
 #!/usr/bin/env node
 
-import { appendFile, mkdir, writeFile } from 'node:fs/promises';
-import {
-    DEFAULT_DATA_PATH,
-    DEFAULT_HISTORY_RELATIVE_PATH,
-    DEFAULT_WINDOW_MINUTES,
-} from './constants.js';
-import {
-    dirnameConfiguredPath,
-    joinConfiguredPath,
-    resolveConfiguredPath,
-} from './path-utils.js';
-import { renderHtmlReport } from './report-html.js';
-import { renderJsonReport } from './report-json.js';
-import { renderTextReport } from './report-text.js';
+import { DEFAULT_WINDOW_MINUTES } from './constants.js';
 import { readAppEnvironment } from './settings.js';
-import { loadUsageData } from './usage-loader.js';
-import { buildUsageReport } from './usage-metrics.js';
+import { runInterval, runOnce } from './usage-runner.js';
 
 /**
- * @typedef {object} RuntimeOptions
+ * @typedef {object} ParsedRuntimeOptions
  * @property {string | undefined} codexHome Codex home folder to scan.
  * @property {string | undefined} dataPath Root folder used for app-managed data files.
  * @property {boolean} forceRefresh Whether HTML output should include the calculated refresh timer.
@@ -32,13 +18,17 @@ import { buildUsageReport } from './usage-metrics.js';
  */
 
 /**
+ * @typedef {ParsedRuntimeOptions & { codexHome: string, dataPath: string }} RuntimeOptions
+ */
+
+/**
  * Parses CLI arguments for report loading and rendering.
  *
  * @param {string[]} args Raw process arguments after the executable name.
- * @returns {RuntimeOptions} Runtime options.
+ * @returns {ParsedRuntimeOptions} Runtime options from CLI arguments.
  */
 function parseArgs(args) {
-    /** @type {RuntimeOptions} */
+    /** @type {ParsedRuntimeOptions} */
     const options = {
         codexHome: undefined,
         dataPath: undefined,
@@ -170,43 +160,9 @@ async function main() {
 }
 
 /**
- * Coordinates one load, total, optional history capture, and render cycle.
- *
- * @param {RuntimeOptions} options Runtime options.
- * @returns {Promise<void>} Resolves after the report is written or printed.
- */
-async function runOnce(options) {
-    const now = new Date();
-    const cutoff = new Date(now.getTime() - options.minutes * 60 * 1000);
-    const usageData = await loadUsageData(options.codexHome, cutoff);
-    const report = buildUsageReport({
-        rows: usageData.rows,
-        quotaSnapshots: usageData.quotaSnapshots,
-        cutoff,
-        now,
-        minutes: options.minutes,
-        codexHome: options.codexHome,
-        format: options.format,
-        duplicateTokenCountEvents: usageData.duplicateTokenCountEvents,
-    });
-    const output = renderReport(report, options);
-
-    if (options.saveHistory) {
-        await appendHistory(report, getHistoryPath(options));
-    }
-
-    if (options.out) {
-        await writeFile(options.out, output, 'utf8');
-        return;
-    }
-
-    process.stdout.write(output);
-}
-
-/**
  * Reads environment settings and merges them into parsed CLI options.
  *
- * @param {RuntimeOptions} options Parsed runtime options.
+ * @param {ParsedRuntimeOptions} options Parsed runtime options.
  * @returns {Promise<RuntimeOptions>} Runtime options with environment defaults.
  */
 async function loadRuntimeOptions(options) {
@@ -217,208 +173,6 @@ async function loadRuntimeOptions(options) {
         codexHome: options.codexHome ?? environment.codexHome,
         dataPath: options.dataPath ?? environment.dataPath,
     };
-}
-
-/**
- * Repeats report generation until a terminal keypress asks the loop to stop.
- *
- * @param {RuntimeOptions} options Runtime options.
- * @returns {Promise<void>} Resolves after the loop stops.
- */
-async function runInterval(options) {
-    const watcher = createKeypressWatcher();
-
-    try {
-        await runIntervalTimer(options, watcher);
-    } finally {
-        watcher.dispose();
-    }
-}
-
-/**
- * Starts a timer-driven interval runner that avoids overlapping report writes.
- *
- * @param {RuntimeOptions} options Runtime options.
- * @param {{ isStopRequested: () => boolean }} watcher Keypress watcher state.
- * @returns {Promise<void>} Resolves after interval mode stops.
- */
-function runIntervalTimer(options, watcher) {
-    return new Promise((resolvePromise, rejectPromise) => {
-        let isRunning = false;
-        let resolveAfterRun = false;
-        /** @type {ReturnType<typeof setInterval> | undefined} */
-        let interval;
-
-        /**
-         * Clears the active interval when the loop ends.
-         *
-         * @returns {void}
-         */
-        const clearActiveInterval = () => {
-            if (interval) {
-                clearInterval(interval);
-            }
-        };
-
-        /**
-         * Runs the report at a timer boundary, or resolves when input requested a stop.
-         *
-         * @returns {void}
-         */
-        const tick = () => {
-            if (watcher.isStopRequested()) {
-                clearActiveInterval();
-                if (isRunning) {
-                    resolveAfterRun = true;
-                    return;
-                }
-                resolvePromise();
-                return;
-            }
-
-            if (isRunning) {
-                return;
-            }
-
-            isRunning = true;
-            runOnce(options)
-                .then(() => {
-                    isRunning = false;
-                    if (resolveAfterRun) {
-                        resolvePromise();
-                    }
-                })
-                .catch((error) => {
-                    clearActiveInterval();
-                    rejectPromise(error);
-                });
-        };
-
-        interval = setInterval(tick, (options.interval ?? 1) * 1000);
-        tick();
-    });
-}
-
-/**
- * Creates a best-effort watcher that treats any terminal input as a stop request.
- *
- * @returns {{ dispose: () => void, isStopRequested: () => boolean }} Keypress watcher controls.
- */
-function createKeypressWatcher() {
-    let stopRequested = false;
-    const input = process.stdin;
-
-    /**
-     * Records that the next interval boundary should end the loop.
-     *
-     * @returns {void}
-     */
-    const requestStop = () => {
-        stopRequested = true;
-    };
-
-    if (input.isTTY) {
-        input.setRawMode(true);
-    }
-    input.resume();
-    input.on('data', requestStop);
-
-    return {
-        /**
-         * Restores stdin to its normal state after interval mode exits.
-         *
-         * @returns {void}
-         */
-        dispose() {
-            input.off('data', requestStop);
-            if (input.isTTY) {
-                input.setRawMode(false);
-            }
-            input.pause();
-        },
-
-        /**
-         * Reports whether any terminal input has requested loop shutdown.
-         *
-         * @returns {boolean} True when a keypress was observed.
-         */
-        isStopRequested() {
-            return stopRequested;
-        },
-    };
-}
-
-/**
- * Renders a report in the requested output format.
- *
- * @param {object} report Structured usage report.
- * @param {RuntimeOptions} options Runtime options.
- * @returns {string} Rendered report.
- */
-function renderReport(report, options) {
-    if (options.format === 'json') {
-        return renderJsonReport(report);
-    }
-    if (options.format === 'html') {
-        return renderHtmlReport(report, {
-            refreshSeconds: options.forceRefresh
-                ? (options.interval ?? 0) - 2
-                : undefined,
-        });
-    }
-    return renderTextReport(report);
-}
-
-/**
- * Appends a compact history snapshot for later local trend reporting.
- *
- * @param {object} report Structured usage report.
- * @param {string} historyPath Destination JSONL path.
- * @returns {Promise<void>} Resolves after the snapshot is appended.
- */
-async function appendHistory(report, historyPath) {
-    const safePath = resolveHistoryPath(historyPath);
-    const snapshot = {
-        captured_at: report.metadata.generated_at,
-        window_minutes: report.window.minutes,
-        observed_token_volume: report.totals.observed_token_volume,
-        effective_input_tokens: report.totals.effective_input_tokens,
-        cached_input_tokens: report.totals.cached_input_tokens,
-        cache_hit_rate: report.totals.cache_hit_rate,
-        output_tokens: report.totals.output_tokens,
-        reasoning_output_tokens: report.totals.reasoning_output_tokens,
-        session_count: report.sessions.length,
-        quota: report.quota,
-    };
-
-    await mkdir(dirnameConfiguredPath(safePath), { recursive: true });
-    await appendFile(safePath, `${JSON.stringify(snapshot)}\n`, 'utf8');
-}
-
-/**
- * Gets the configured history path for a report run.
- *
- * @param {RuntimeOptions} options Runtime options.
- * @returns {string} Explicit or default history path.
- */
-function getHistoryPath(options) {
-    return (
-        options.history ??
-        joinConfiguredPath(
-            options.dataPath ?? DEFAULT_DATA_PATH,
-            DEFAULT_HISTORY_RELATIVE_PATH
-        )
-    );
-}
-
-/**
- * Resolves a history path to its absolute destination.
- *
- * @param {string} historyPath User-provided or default path.
- * @returns {string} Absolute history path.
- */
-function resolveHistoryPath(historyPath) {
-    return resolveConfiguredPath(historyPath);
 }
 
 main().catch((error) => {

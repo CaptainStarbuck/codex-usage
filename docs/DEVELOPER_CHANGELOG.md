@@ -9,6 +9,7 @@ These are details about other changes, and trivial details that don't warrant a 
 - Added path helpers that preserve Windows drive, UNC, and backslash semantics for configured file and folder paths.
 - Updated configured path joins and path display helpers to use OS-aware path handling.
 - Changed the package `bin` entry from an absolute workspace path to a relative executable path.
+- Refactored runtime report generation, renderer selection, history writing, and interval loop handling out of `src/codex-usage.js` into focused modules.
 
 ### 2026-05-11 / v1.0.4
 

@@ -74,6 +74,12 @@ Configured paths are joined, resolved, and displayed with native path rules. Win
 
 The project uses Node.js built-in modules only. `package.json` exposes the `codex-usage` command with a `bin` entry that points directly at `src/codex-usage.js`.
 
+`src/codex-usage.js` handles CLI argument parsing, help text, environment defaults, and startup mode selection. Runtime operations are split into focused modules:
+
+- `src/usage-runner.js` coordinates one-time report generation and interval mode.
+- `src/report-renderer.js` dispatches the structured report to the text, JSON, or HTML renderer.
+- `src/history-writer.js` resolves history destinations and appends compact JSONL snapshots.
+
 ## Source Aggregate Utility
 
 `src/aggregate.js` builds `src/aggregate.md`, a markdown document containing the JavaScript source files in `src`. The aggregate places `codex-usage.js` and `constants.js` first, then lists the remaining JavaScript files alphabetically. See [source-aggregate.md](./source-aggregate.md) for the command.

@@ -81,7 +81,10 @@ Start with [docs/index.md](./docs/index.md), which links to:
 ## Project Files
 
 - `.env.example` **_New in v1.1_** shows the supported local configuration values. Copy to .env for first time usage and update .env as required when new env options are added.
-- `src/codex-usage.js` is the direct CLI entry point and application flow coordinator.
+- `src/codex-usage.js` is the direct CLI entry point for argument parsing and runtime startup.
+- `src/usage-runner.js` coordinates report generation for one-time and interval runs.
+- `src/report-renderer.js` selects the text, JSON, or HTML report renderer.
+- `src/history-writer.js` writes optional compact JSONL history snapshots.
 - `src/session-files.js` finds recent Codex session files.
 - `src/session-parser.js` extracts token usage events, rate limit snapshots, and model metadata.
 - `src/quota-snapshot.js` normalizes Codex rate limit snapshots for report output.
