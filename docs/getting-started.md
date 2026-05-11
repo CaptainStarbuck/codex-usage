@@ -20,7 +20,7 @@ Copy `.env.example` to `.env` if the file is not present, then set `DATA_PATH` t
 DATA_PATH=/tmp
 ```
 
-History capture uses this folder when `--history` is not provided.
+History capture uses this folder when `--history` is not provided. Use `--data-path` to override `DATA_PATH` for a single run.
 
 ## First Run
 
@@ -40,23 +40,18 @@ Use `--minutes` to choose a rolling time window:
 node src/codex-usage.js --minutes 60
 ```
 
-The report includes token usage events whose timestamps fall inside the selected window. Quota snapshots may come from the selected window or from the latest earlier snapshot found in scanned files.
+The report includes token usage events whose timestamps fall inside the selected window of the previous N minutes. Quota snapshots may come from the selected window or from the latest earlier snapshot found in scanned files.
 
 ## Choose An Output Format
 
-Text output is designed for terminals:
+Text output is designed for terminals. JSON output emits the structured report object:
 
 ```bash
 node src/codex-usage.js --format text
-```
-
-JSON output emits the structured report object:
-
-```bash
 node src/codex-usage.js --format json
 ```
 
-HTML output writes a standalone browser dashboard when used with `--out`:
+HTML output writes a standalone browser dashboard when used with `--out`. The default path for output is the current project folder, not DATA_PATH. Specify a folder path if desired:
 
 ```bash
 node src/codex-usage.js --format html --out codex-usage.html
@@ -66,7 +61,7 @@ Open the generated HTML file in a browser to review quota cards, summary cards, 
 
 ## Keep A Browser Report Current
 
-Use interval mode to regenerate an output file:
+Use interval mode to regenerate an output file every N seconds:
 
 ```bash
 node src/codex-usage.js --minutes 15 --format html --out codex-usage.html --interval 10
@@ -78,9 +73,9 @@ Add `--force-refresh` so the generated HTML asks the browser to reload shortly b
 node src/codex-usage.js --minutes 15 --format html --out codex-usage.html --interval 10 --force-refresh
 ```
 
-Any terminal keypress asks interval mode to stop at the next interval boundary.
+Any terminal keypress causes interval mode to stop at the next interval boundary.
 
-## Save Local History
+## Save Data Snapshot to Local History
 
 History capture appends one compact JSON object per run:
 
@@ -92,6 +87,12 @@ The default history file is `data/codex-usage/history.jsonl` under `DATA_PATH`. 
 
 ```bash
 node src/codex-usage.js --minutes 60 --history /tmp/codex-usage-history.jsonl
+```
+
+Use `--data-path` to choose the configured data folder for one run:
+
+```bash
+node src/codex-usage.js --minutes 60 --save-history --data-path /tmp/codex-usage
 ```
 
 ## Next Reading

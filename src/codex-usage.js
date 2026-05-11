@@ -18,7 +18,7 @@ import { buildUsageReport } from './usage-metrics.js';
 /**
  * @typedef {object} RuntimeOptions
  * @property {string} codexHome Codex home folder to scan.
- * @property {string} dataPath Root folder used for app-managed data files.
+ * @property {string | undefined} dataPath Root folder used for app-managed data files.
  * @property {boolean} forceRefresh Whether HTML output should include the calculated refresh timer.
  * @property {string} format Output format.
  * @property {string | undefined} history Optional history output path.
@@ -38,7 +38,7 @@ function parseArgs(args) {
     /** @type {RuntimeOptions} */
     const options = {
         codexHome: DEFAULT_CODEX_HOME,
-        dataPath: DEFAULT_DATA_PATH,
+        dataPath: undefined,
         forceRefresh: false,
         format: 'text',
         history: undefined,
@@ -55,6 +55,12 @@ function parseArgs(args) {
                 continue;
             }
             options.codexHome = args[index + 1];
+            index += 1;
+        } else if (arg === '--data-path') {
+            if (!args[index + 1]) {
+                continue;
+            }
+            options.dataPath = args[index + 1];
             index += 1;
         } else if (arg === '--minutes') {
             if (!args[index + 1]) {
@@ -137,7 +143,7 @@ function parseArgs(args) {
  * @returns {void}
  */
 function printHelp() {
-    console.log(`Usage: node src/codex-usage.js [--minutes 15] [--codex-home /home/codex/.codex] [--format text|json|html] [--out path] [--interval seconds] [--force-refresh] [--save-history] [--history path]
+    console.log(`Usage: node src/codex-usage.js [--minutes 15] [--codex-home /home/codex/.codex] [--data-path /tmp] [--format text|json|html] [--out path] [--interval seconds] [--force-refresh] [--save-history] [--history path]
 
 Shows Codex token usage analytics from session JSONL files for the selected window.
 Use --interval with --out to regenerate the output file until a terminal keypress stops the loop at the next interval.
@@ -205,7 +211,7 @@ async function loadRuntimeOptions(options) {
 
     return {
         ...options,
-        dataPath: environment.dataPath,
+        dataPath: options.dataPath ?? environment.dataPath,
     };
 }
 
@@ -393,7 +399,11 @@ async function appendHistory(report, historyPath) {
  */
 function getHistoryPath(options) {
     return (
-        options.history ?? join(options.dataPath, DEFAULT_HISTORY_RELATIVE_PATH)
+        options.history ??
+        join(
+            options.dataPath ?? DEFAULT_DATA_PATH,
+            DEFAULT_HISTORY_RELATIVE_PATH
+        )
     );
 }
 

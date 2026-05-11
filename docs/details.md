@@ -66,7 +66,7 @@ History capture is opt-in. `--save-history` appends one compact JSON object per 
 
 ## Configuration
 
-The CLI reads `.env` from the project root. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file.
+The CLI reads `.env` from the project root. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file. The `--data-path` CLI option overrides `DATA_PATH` for a single run.
 
 ## Runtime
 

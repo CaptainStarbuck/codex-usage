@@ -3,6 +3,13 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+### 2026-05-11 / v1.0.3
+
+#### Enhanced
+
+- Added `--data-path` to override `DATA_PATH` for a single run.
+- Trimmed README to essentials, now refers to `getting-started.md` for details.
+
 ### 2026-05-11 / v1.0.2
 
 #### Enhanced

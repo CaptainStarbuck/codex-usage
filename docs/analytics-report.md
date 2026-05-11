@@ -82,4 +82,4 @@ The command supports `--minutes`, `--codex-home`, `--format`, `--out`, `--interv
 
 ## History
 
-History is opt-in. `--save-history` appends a compact JSONL summary to `data/codex-usage/history.jsonl` under `DATA_PATH`. `--history <path>` writes to a specific path and also enables capture.
+History is opt-in. `--save-history` appends a compact JSONL summary to `data/codex-usage/history.jsonl` under `DATA_PATH`. `--data-path <path>` overrides `DATA_PATH` for the run. `--history <path>` writes to a specific path and also enables capture.

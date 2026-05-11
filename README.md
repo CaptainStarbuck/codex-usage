@@ -1,4 +1,4 @@
-# codex-usage v1.0.2
+# codex-usage v1.0.3
 
 ## What This Project Does
 
@@ -33,7 +33,7 @@ The report includes:
 
 ## How To Use It
 
-The command uses Node.js built-in modules only. No npm package installation is required to run the direct entry point.
+The command uses Node.js built-in modules only. No NPM package installation is required to run the direct entry point.
 
 Run the entry point with Node.js:
 
@@ -41,45 +41,25 @@ Run the entry point with Node.js:
 node src/codex-usage.js
 ```
 
-For the smooth first-time path, read [docs/getting-started.md](./docs/getting-started.md). For the full command reference, read [docs/cli-reference.md](./docs/cli-reference.md).
+See [docs/getting-started.md](./docs/getting-started.md) for an introduction to all options. For the full command reference, read [docs/cli-reference.md](./docs/cli-reference.md).
 
-## Common Commands
+Options include:
 
-**_New in v1.1_** Configure the app-managed data folder in `.env` (copy from `.env.example`):
+- Output to terminal or a file
+- Send data to a custom folder
+- Render plain text, JSON, or standalone HTML
+- Only include data from the previous N minutes
+- Regenerate the browser report every 10 seconds and make the open page refresh itself
+- Maintain a compact local history snapshot of processed daa
 
-```bash
-DATA_PATH=/tmp
-```
+## .env **_New in v1.1_**
 
-Run a different time window. Includes data from the previous N minutes:
+Override default folders and settings in `.env`.  
+Check updates for changes in `.env.example`.
 
-```bash
-node src/codex-usage.js --minutes 30
-```
+## Data folders
 
-Render JSON to standard output:
-
-```bash
-node src/codex-usage.js --minutes 15 --format json
-```
-
-Write a standalone browser report:
-
-```bash
-node src/codex-usage.js --minutes 15 --format html --out codex-usage.html
-```
-
-Regenerate the browser report every 10 seconds and make the open page refresh itself:
-
-```bash
-node src/codex-usage.js --minutes 15 --format html --out codex-usage.html --interval 10 --force-refresh
-```
-
-Append a compact local history snapshot:
-
-```bash
-node src/codex-usage.js --minutes 60 --save-history
-```
+Data is written by default to /tmp (.env DATA_PATH).
 
 ## Documentation
 
@@ -100,19 +80,18 @@ Start with [docs/index.md](./docs/index.md), which links to:
 - `src/quota-snapshot.js` normalizes Codex rate limit snapshots for report output.
 - `src/usage-loader.js`, `src/usage-normalizer.js`, `src/usage-metrics.js`, `src/usage-groups.js`, and `src/usage-insights.js` load, normalize, summarize, and annotate usage data.
 - `src/report-text.js`, `src/report-json.js`, and `src/report-html.js` render the structured report model.
-- `src/aggregate.js` builds `src/aggregate.md` for source review.
 - `docs/` contains the user and maintainer documentation.
 
-### `src/aggregate.md`
+### Code Review
 
-This is a single Markdown document containing the whole JS source tree, ordered with the main entry files first. It's only useful when someone wants to:
+`src/aggregate.js` builds `src/aggregate.md` for source review. This is a single Markdown document containing the whole JS source tree, ordered with the main entry files first. It's only useful when someone wants to:
 
 - Read the project in one continuous document instead of opening many files.
 - Paste the full source into a review tool, AI assistant, issue, or documentation system.
 - Inspect a snapshot of the source without needing repo navigation.
 - Compare or archive the current implementation as a human-readable artifact.
 
-It is not needed for runtime. It is a convenience artifact for your review, documentation, and external analysis of the source.
+It is not needed for runtime. It is a convenience artifact for your review, documentation, and external analysis of the source. It is regenerated into the repo with each vX.Y update.
 
 ## Dependencies
 
@@ -121,6 +100,7 @@ The run-time uses Node.js built-in modules only.
 Package installation is optional, not required, and not supported as a package component.  
 Only development scripts use the dev dependencies listed in `package.json`.  
 PNPM is used in `package.json` scripts.
+`pnpm run install` to use ESLint, Prettier, and other development tooling.
 
 ## Linked Command
 
@@ -132,3 +112,9 @@ codex-usage
 ```
 
 Remove the link later with `npm unlink --global codex-usage`.
+
+## Work In Progress
+
+This is a new project and not used by many people yet.  
+Please discuss issues with @CaptainStarbuck in Discord OpenAI server, (https://discord.gg/openai) Channel #codex-discussions -  
+and/or create Issues for changes, fixes, and enhancements in https://github.com/CaptainStarbuck/codex-usage/issues.

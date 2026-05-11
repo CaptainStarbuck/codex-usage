@@ -2,6 +2,13 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
+### 2026-05-11 / v1.0.3
+
+#### Enhanced
+
+- Added CLI parsing and documentation for `--data-path`, with CLI values taking precedence over `.env` and process `DATA_PATH` values.
+-
+
 ### 2026-05-11 / v1.0.2
 
 #### Changed
