@@ -102,6 +102,17 @@ Start with [docs/index.md](./docs/index.md), which links to:
 - `src/aggregate.js` builds `src/aggregate.md` for source review.
 - `docs/` contains the user and maintainer documentation.
 
+### `src/aggregate.md`
+
+This is a single Markdown document containing the whole JS source tree, ordered with the main entry files first. It's only useful when someone wants to:
+
+- Read the project in one continuous document instead of opening many files.
+- Paste the full source into a review tool, AI assistant, issue, or documentation system.
+- Inspect a snapshot of the source without needing repo navigation.
+- Compare or archive the current implementation as a human-readable artifact.
+
+It is not needed for runtime. It is a convenience artifact for your review, documentation, and external analysis of the source.
+
 ## Dependencies
 
 The run-time uses Node.js built-in modules only.
