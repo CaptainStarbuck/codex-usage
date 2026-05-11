@@ -1,3 +1,9 @@
+### 2026-05-11 / v1.0.1
+
+- Removed the fixed workspace allow-list for history output paths. This was an initial development restriction that prevented codex from writing outside of a system-specific sandbox. It's not necessary with the new DATA_PATH.
+
+#### Changed
+
 ### 2026-04-27 / v1.0.0
 
 #### Changed
@@ -10,7 +16,6 @@
 #### Enhanced
 
 - Added newcomer docs
-- Removed the fixed workspace allow-list for history output paths.
 
 #### Fixed
 
