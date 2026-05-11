@@ -5,7 +5,7 @@ import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const SOURCE_DIR = dirname(fileURLToPath(import.meta.url));
-const OUTPUT_FILE = join(SOURCE_DIR, 'aggregate.md');
+const OUTPUT_FILE = join(SOURCE_DIR, '..', 'docs', 'aggregate.md');
 const PRIORITY_FILE_NAMES = ['codex-usage.js', 'constants.js'];
 
 /**
