@@ -74,14 +74,22 @@ Configured paths are joined, resolved, and displayed with native path rules. Win
 
 The project uses Node.js built-in modules only. `package.json` exposes the `codex-usage` command with a `bin` entry that points directly at `src/codex-usage.js`.
 
-`src/codex-usage.js` handles CLI argument parsing, help text, environment defaults, and startup mode selection. Runtime operations are split into focused modules:
+The project source is organized into focused files:
 
-- `src/usage-runner.js` coordinates one-time report generation and interval mode.
-- `src/report-renderer.js` dispatches the structured report to the text, JSON, or HTML renderer.
-- `src/history-writer.js` resolves history destinations and appends compact JSONL snapshots.
+- `.env.example` shows the supported local configuration values. Copy it to `.env` for local configuration.
+- `src/codex-usage.js` is the direct CLI entry point for argument parsing, help text, environment defaults, and startup mode selection.
+- `src/usage-runner.js` coordinates report generation for one-time and interval runs.
+- `src/report-renderer.js` selects the text, JSON, or HTML report renderer for the structured report.
+- `src/history-writer.js` resolves history destinations and writes optional compact JSONL history snapshots.
+- `src/session-files.js` finds recent Codex session files in the configured Codex home.
+- `src/session-parser.js` extracts token usage events, rate limit snapshots, and model metadata from Codex JSONL session records.
+- `src/quota-snapshot.js` normalizes Codex rate limit snapshots for report output.
+- `src/usage-loader.js`, `src/usage-normalizer.js`, `src/usage-metrics.js`, `src/usage-groups.js`, and `src/usage-insights.js` load, normalize, summarize, group, and annotate usage data.
+- `src/report-text.js`, `src/report-json.js`, and `src/report-html.js` render the structured report model as terminal text, JSON, or standalone HTML.
+- `docs/` contains the user and maintainer documentation.
 
 HTML report rendering uses template assets under `src/html`. `src/report-html.js` reads `base.html`, replaces full-line stub comments with the refresh script, CSS, escaped report JSON, and browser JavaScript, then returns the complete standalone document.
 
 ## Source Aggregate Utility
 
-`src/aggregate.js` builds `src/aggregate.md`, a markdown document containing the JavaScript source files in `src`. The aggregate places `codex-usage.js` and `constants.js` first, then lists the remaining JavaScript files alphabetically. See [source-aggregate.md](./source-aggregate.md) for the command.
+`src/aggregate.js` builds `docs/aggregate.md`, a markdown document containing the JavaScript source files in `src`. The aggregate places `codex-usage.js` and `constants.js` first, then lists the remaining JavaScript files alphabetically. It is not needed for runtime and is not linked from the docs index. It is a convenience artifact for source review, documentation, external analysis, comparison, and archiving. See [source-aggregate.md](./source-aggregate.md) for the command.

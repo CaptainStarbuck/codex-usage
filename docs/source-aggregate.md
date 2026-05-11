@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`src/aggregate.js` builds `src/aggregate.md`, a markdown document that contains every JavaScript source file in `src`.
+`src/aggregate.js` builds `docs/aggregate.md`, a markdown document that contains every JavaScript source file in `src`.
 
 ## File Order
 

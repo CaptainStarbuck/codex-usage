@@ -13,6 +13,7 @@ See README.md for information about this software called Explorable Links.
 - Describes the project for users, not for project contributors.
 - Includes "what it does", not "how it works".
 - Do not put code-level information in the README, only user-facing functionality information.
+- Contact information in this README.md file is intentional and acceptable, do not remove.
 
 ### `CHANGELOG.md`
 

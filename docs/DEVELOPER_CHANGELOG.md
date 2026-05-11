@@ -15,6 +15,7 @@ These are details about other changes, and trivial details that don't warrant a 
 #### Changed
 
 - Moved aggregate.md to docs to avoid Codex wanting to modify it.
+- Moved README source file summaries into docs/details.md and removed the duplicate README project file section.
 
 ### 2026-05-11 / v1.0.4
 
