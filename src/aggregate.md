@@ -6,7 +6,6 @@ Source file: `src/codex-usage.js`.
 import { appendFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import {
-    ALLOWED_WORKSPACE_ROOTS,
     DEFAULT_CODEX_HOME,
     DEFAULT_HISTORY_PATH,
     DEFAULT_WINDOW_MINUTES,
@@ -371,24 +370,13 @@ async function appendHistory(report, historyPath) {
 }
 
 /**
- * Resolves and validates a history path against the allowed workspace roots.
+ * Resolves a history path to its absolute destination.
  *
  * @param {string} historyPath User-provided or default path.
- * @returns {string} Absolute validated path.
+ * @returns {string} Absolute history path.
  */
 function resolveHistoryPath(historyPath) {
-    const resolvedPath = resolve(historyPath);
-    const allowed = ALLOWED_WORKSPACE_ROOTS.some(
-        (root) => resolvedPath === root || resolvedPath.startsWith(`${root}/`)
-    );
-
-    if (!allowed) {
-        throw new Error(
-            'REQUESTED HISTORY PATH IS OUTSIDE THE ALLOWED WORKSPACE. USE A PATH UNDER /opt/codex OR /tmp.'
-        );
-    }
-
-    return resolvedPath;
+    return resolve(historyPath);
 }
 
 main().catch((error) => {
@@ -403,7 +391,6 @@ Source file: `src/constants.js`.
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-export const ALLOWED_WORKSPACE_ROOTS = ['/opt/codex', '/tmp'];
 export const DEFAULT_CODEX_HOME = join(homedir(), '.codex');
 export const DEFAULT_HISTORY_PATH = '/opt/codex/data/codex-usage/history.jsonl';
 export const DEFAULT_WINDOW_MINUTES = 15;

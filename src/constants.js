@@ -1,7 +1,6 @@
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
-export const ALLOWED_WORKSPACE_ROOTS = ['/opt/codex', '/tmp'];
 export const DEFAULT_CODEX_HOME = join(homedir(), '.codex');
 export const DEFAULT_HISTORY_PATH = '/opt/codex/data/codex-usage/history.jsonl';
 export const DEFAULT_WINDOW_MINUTES = 15;

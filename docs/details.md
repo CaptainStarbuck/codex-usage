@@ -62,7 +62,7 @@ Each interval run uses a fresh `now` and cutoff time, so a command such as `--mi
 
 ## History
 
-History capture is opt-in. `--save-history` appends one compact JSON object per run to `/opt/codex/data/codex-usage/history.jsonl`. `--history <path>` appends to the provided path and enables history capture. History paths must be inside `/opt/codex` or `/tmp`.
+History capture is opt-in. `--save-history` appends one compact JSON object per run to `/opt/codex/data/codex-usage/history.jsonl`. `--history <path>` appends to the provided path and enables history capture.
 
 ## Runtime
 

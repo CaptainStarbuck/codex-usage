@@ -78,7 +78,7 @@ History capture appends one compact JSON object per run:
 node src/codex-usage.js --minutes 60 --save-history
 ```
 
-The default history file is `/opt/codex/data/codex-usage/history.jsonl`. Use `--history` to choose another path under `/opt/codex` or `/tmp`:
+The default history file is `/opt/codex/data/codex-usage/history.jsonl`. Use `--history` to choose another path:
 
 ```bash
 node src/codex-usage.js --minutes 60 --history /tmp/codex-usage-history.jsonl

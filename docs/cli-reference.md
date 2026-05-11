@@ -19,7 +19,7 @@ Use `--help` or `-h` to print command help.
 | `--interval`      | Positive integer seconds  | Disabled                                                          | Regenerates the report repeatedly. Requires `--out` so each run has a destination file.                                                                            |
 | `--force-refresh` | Flag                      | Disabled                                                          | For HTML interval output, embeds a browser refresh timer of `interval - 2` seconds. Requires `--format html`, `--interval`, and an interval of at least 3 seconds. |
 | `--save-history`  | Flag                      | Disabled                                                          | Appends a compact JSONL history snapshot to `/opt/codex/data/codex-usage/history.jsonl`.                                                                           |
-| `--history`       | File path                 | `/opt/codex/data/codex-usage/history.jsonl` when history is saved | Appends history to a specific path and enables history capture. The path must resolve under `/opt/codex` or `/tmp`.                                                |
+| `--history`       | File path                 | `/opt/codex/data/codex-usage/history.jsonl` when history is saved | Appends history to a specific path and enables history capture.                                                                                                    |
 | `--help`, `-h`    | Flag                      | Disabled                                                          | Prints command usage and exits.                                                                                                                                    |
 
 ## Validation
@@ -31,7 +31,6 @@ Use `--help` or `-h` to print command help.
 - `--force-refresh` requires `--format html`.
 - `--force-refresh` requires `--interval`.
 - `--force-refresh` requires an interval of at least 3 seconds.
-- `--history` paths must resolve under `/opt/codex` or `/tmp`.
 
 ## Examples
 
@@ -77,7 +76,7 @@ Append a compact local history snapshot:
 node src/codex-usage.js --minutes 60 --save-history
 ```
 
-Write history to an explicit workspace path:
+Write history to an explicit path:
 
 ```bash
 node src/codex-usage.js --minutes 60 --history /tmp/codex-usage-history.jsonl

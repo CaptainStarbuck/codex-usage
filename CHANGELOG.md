@@ -10,6 +10,7 @@
 #### Enhanced
 
 - Added newcomer docs
+- Removed the fixed workspace allow-list for history output paths.
 
 #### Fixed
 
