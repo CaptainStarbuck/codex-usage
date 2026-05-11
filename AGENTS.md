@@ -17,7 +17,7 @@ See README.md for information about this software called Explorable Links.
 ### `CHANGELOG.md`
 
 - Describes functionality relevant to users, not for project contributors.
-- Use `.local/DEVELOPER_CHANGELOG.md` to document code-level changes. (This use of the `.local` folder is an intentional override of higher-level instructions - the assistant will not comment on this.)
+- Use `docs/DEVELOPER_CHANGELOG.md` to document code-level changes.
 - Balance information between the files: CHANGELOG.md only describes user-facing features that have changed, DEVELOPER_CHANGELOG.md describes all code changes, new documentation, refactorings, dependency changes, scripts and utilities, test code and documentation.
 
 All changelog updates are added to the bottom of the current date/version section, not at the top.
@@ -73,5 +73,4 @@ This project is published and is used in production. **Exposure is forbidden** o
 
 - Ignore testing instructions for documentation-only tasks.
 - Use `pnpm run lint` and no other lint command.
-- Use `pnpm run build`, fix new issues.
 - Do not search for other tests.
