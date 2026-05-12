@@ -3,6 +3,16 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+### 2026-05-11 / v1.1.0
+
+Summary: This is a roll-up from 1.0.x.
+
+- Windows is now supported.
+- Output is no longer hardcoded to specific folders.
+- .env is auto-generated and now defaults write operations under /tmp.
+- CLI overrides allow runtime overrides.
+- Documentation has been cleaned up a bit.
+
 ### 2026-05-11 / v1.0.5
 
 #### Enhanced
