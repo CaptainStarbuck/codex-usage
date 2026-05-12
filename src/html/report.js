@@ -224,6 +224,11 @@ function renderTopSessions() {
         .join('');
 }
 
+/**
+ * Renders the highest-volume usage events as compact dashboard cards.
+ *
+ * @returns {void}
+ */
 function renderTopEvents() {
     const node = document.getElementById('top-events');
     const rows = [...(report.rows || [])]
@@ -247,7 +252,7 @@ function renderTopEvents() {
                 html(row.timestamp) +
                 '</strong><span class="value">' +
                 integer(row.observed_token_volume) +
-                '</span></header><div class="stats"><span>Session<b>' +
+                '</span></header><div class="stats"><span class="stat-wide">Session<b>' +
                 html(row.session_id) +
                 '</b></span><span>Model<b>' +
                 html(row.model) +

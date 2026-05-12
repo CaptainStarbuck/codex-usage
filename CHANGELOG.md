@@ -7,6 +7,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
 - Dynamic HTML report styling, currently with two available files, one light and one dark.
 - Models and Events tables use user-friendly column headers and fit columns to the available report width.
+- Top Events cards display the session on its own line above the event metric columns.
 
 ### 2026-05-11 / v1.1.0
 
