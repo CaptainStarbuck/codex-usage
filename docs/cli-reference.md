@@ -53,6 +53,7 @@ CODEX_HOME="C:\Users\example"
 - `--force-refresh` requires `--format html`.
 - `--force-refresh` requires `--interval`.
 - `--force-refresh` requires an interval of at least 3 seconds.
+- Invalid OS paths for output folders result in a runtime error and no output is generated.
 
 ## Examples
 

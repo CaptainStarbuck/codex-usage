@@ -26,6 +26,10 @@ Summary: This is a roll-up from 1.0.x.
 - `--out` path handling now uses `DATA_PATH` for filename-only values and direct paths when a folder is included.
 - The default history file now writes directly under `DATA_PATH`.
 
+#### Fixed
+
+- Output generation stops with a runtime error when an output folder path is formatted for the wrong OS.
+
 ### 2026-05-11 / v1.0.4
 
 #### Enhanced

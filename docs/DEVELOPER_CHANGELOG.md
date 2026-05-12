@@ -21,6 +21,12 @@ These are details about other changes, and trivial details that don't warrant a 
 - Moved aggregate.md to docs to avoid Codex wanting to modify it.
 - Moved README source file summaries into docs/details.md and removed the duplicate README project file section.
 
+#### Fixed
+
+- Added runtime write-destination validation so Windows volume and UNC output paths are rejected outside Windows before any directory or file write occurs.
+- Added Windows output path normalization so valid drive and UNC output paths convert forward slashes to backslashes before writes.
+- Routed `DATA_PATH`, `--out`, and history destinations through OS-aware output path validation.
+
 ### 2026-05-11 / v1.0.4
 
 #### Enhanced

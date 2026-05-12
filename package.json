@@ -2,7 +2,7 @@
     "name": "codex-usage",
     "displayName": "CodexUsage",
     "description": "A CLI tool to analyze and report on the usage of OpenAI's Codex.",
-    "version": "1.0.5",
+    "version": "1.1.0",
     "author": "@CaptainStarbuck (https://discord.gg/openai #codex-discussions)",
     "license": "MIT",
     "homepage": "https://github.com/CaptainStarbuck/codex-usage",

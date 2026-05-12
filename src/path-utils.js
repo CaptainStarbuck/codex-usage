@@ -1,7 +1,10 @@
+import { platform } from 'node:os';
 import { basename, dirname, join, resolve, sep, win32 } from 'node:path';
 
 const WINDOWS_VOLUME_PATTERN = /^[A-Za-z]:/u;
+const WINDOWS_OUTPUT_VOLUME_PATTERN = /^[A-Za-z]{1,5}:/u;
 const WINDOWS_UNC_PATTERN = /^(?:\\\\|\/\/)[^\\/]+[\\/][^\\/]+/u;
+const WINDOWS_BACKSLASH_UNC_PATTERN = /^\\\\/u;
 
 /**
  * @typedef {object} PathApi
@@ -88,6 +91,50 @@ export function resolveConfiguredPath(filePath) {
 }
 
 /**
+ * Validates and normalizes a file-system write destination for the current OS.
+ *
+ * @param {string} outputPath File or folder path that will be written.
+ * @param {string} potentialOutputFolder Folder that would receive generated output.
+ * @returns {string} Path normalized for the current OS.
+ */
+export function normalizeConfiguredOutputPath(
+    outputPath,
+    potentialOutputFolder
+) {
+    return normalizeConfiguredOutputPathForPlatform(
+        outputPath,
+        potentialOutputFolder,
+        platform()
+    );
+}
+
+/**
+ * Validates and normalizes a file-system write destination for a platform.
+ *
+ * @param {string} outputPath File or folder path that will be written.
+ * @param {string} potentialOutputFolder Folder that would receive generated output.
+ * @param {NodeJS.Platform} platformName Runtime platform name.
+ * @returns {string} Path normalized for the supplied OS.
+ */
+export function normalizeConfiguredOutputPathForPlatform(
+    outputPath,
+    potentialOutputFolder,
+    platformName
+) {
+    if (platformName === 'win32') {
+        return normalizeWindowsOutputPath(outputPath, potentialOutputFolder);
+    }
+
+    if (isWindowsOnlyOutputPath(outputPath)) {
+        throw new Error(
+            `Output will not be generated because the output folder is formatted for Windows: ${potentialOutputFolder}`
+        );
+    }
+
+    return outputPath;
+}
+
+/**
  * Checks whether a configured path is only a filename with no folder path.
  *
  * @param {string} filePath Path to inspect.
@@ -95,6 +142,43 @@ export function resolveConfiguredPath(filePath) {
  */
 function isConfiguredFilenameOnly(filePath) {
     return !/[\\/]/u.test(filePath) && !WINDOWS_VOLUME_PATTERN.test(filePath);
+}
+
+/**
+ * Normalizes a Windows output path or rejects POSIX-style separators.
+ *
+ * @param {string} outputPath File or folder path that will be written.
+ * @param {string} potentialOutputFolder Folder that would receive generated output.
+ * @returns {string} Windows-compatible output path.
+ */
+function normalizeWindowsOutputPath(outputPath, potentialOutputFolder) {
+    if (outputPath.includes('/')) {
+        if (
+            WINDOWS_OUTPUT_VOLUME_PATTERN.test(outputPath) ||
+            WINDOWS_BACKSLASH_UNC_PATTERN.test(outputPath)
+        ) {
+            return outputPath.replace(/\//gu, '\\');
+        }
+
+        throw new Error(
+            `Output will not be generated because the output folder is not formatted for Windows: ${potentialOutputFolder}`
+        );
+    }
+
+    return outputPath;
+}
+
+/**
+ * Checks whether a configured output path only belongs to Windows.
+ *
+ * @param {string} outputPath File or folder path that will be written.
+ * @returns {boolean} True when the path should be rejected outside Windows.
+ */
+function isWindowsOnlyOutputPath(outputPath) {
+    return (
+        WINDOWS_OUTPUT_VOLUME_PATTERN.test(outputPath) ||
+        WINDOWS_BACKSLASH_UNC_PATTERN.test(outputPath)
+    );
 }
 
 /**

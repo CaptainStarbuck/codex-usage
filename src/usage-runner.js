@@ -4,6 +4,7 @@ import { DEFAULT_DATA_PATH } from './constants.js';
 import { appendHistorySnapshot } from './history-writer.js';
 import {
     dirnameConfiguredPath,
+    normalizeConfiguredOutputPath,
     resolveConfiguredFileDestination,
 } from './path-utils.js';
 import { renderReport } from './report-renderer.js';
@@ -32,6 +33,9 @@ import { buildUsageReport } from './usage-metrics.js';
 export async function runOnce(options) {
     const now = new Date();
     const cutoff = new Date(now.getTime() - options.minutes * 60 * 1000);
+    const outputPath = options.out
+        ? resolveOutputFilePath(options.out, options)
+        : undefined;
     const usageData = await loadUsageData(options.codexHome, cutoff);
     const report = buildUsageReport({
         rows: usageData.rows,
@@ -49,8 +53,8 @@ export async function runOnce(options) {
         await appendHistorySnapshot(report, options);
     }
 
-    if (options.out) {
-        await writeOutputFile(options.out, output, options);
+    if (outputPath) {
+        await writeOutputFile(outputPath, output);
         return;
     }
 
@@ -58,19 +62,32 @@ export async function runOnce(options) {
 }
 
 /**
- * Writes rendered output to the configured output file.
+ * Resolves and validates the configured report output path.
  *
  * @param {string} outPath User-provided output path.
- * @param {string} output Rendered report output.
  * @param {RunOptions} options Runtime options.
- * @returns {Promise<void>} Resolves after the output file is written.
+ * @returns {string} Validated output file path.
  */
-async function writeOutputFile(outPath, output, options) {
-    const outputPath = resolveConfiguredFileDestination(
+function resolveOutputFilePath(outPath, options) {
+    const configuredOutputPath = resolveConfiguredFileDestination(
         outPath,
         options.dataPath ?? DEFAULT_DATA_PATH
     );
 
+    return normalizeConfiguredOutputPath(
+        configuredOutputPath,
+        dirnameConfiguredPath(configuredOutputPath)
+    );
+}
+
+/**
+ * Writes rendered output to a validated output file.
+ *
+ * @param {string} outputPath Validated output file path.
+ * @param {string} output Rendered report output.
+ * @returns {Promise<void>} Resolves after the output file is written.
+ */
+async function writeOutputFile(outputPath, output) {
     await mkdir(dirnameConfiguredPath(outputPath), { recursive: true });
     await writeFile(outputPath, output, 'utf8');
 }

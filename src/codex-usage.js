@@ -3,7 +3,10 @@
 import { mkdir } from 'node:fs/promises';
 
 import { DEFAULT_WINDOW_MINUTES } from './constants.js';
-import { resolveConfiguredPath } from './path-utils.js';
+import {
+    normalizeConfiguredOutputPath,
+    resolveConfiguredPath,
+} from './path-utils.js';
 import { readAppEnvironment } from './settings.js';
 import { runInterval, runOnce } from './usage-runner.js';
 
@@ -170,7 +173,10 @@ async function main() {
  */
 async function loadRuntimeOptions(options) {
     const environment = await readAppEnvironment();
-    const dataPath = options.dataPath ?? environment.dataPath;
+    const dataPath = normalizeConfiguredOutputPath(
+        options.dataPath ?? environment.dataPath,
+        options.dataPath ?? environment.dataPath
+    );
 
     await mkdir(resolveConfiguredPath(dataPath), { recursive: true });
 

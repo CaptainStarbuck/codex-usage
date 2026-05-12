@@ -65,6 +65,7 @@ Override default folders and settings in `.env`, now created for you. Check upda
 Data is written by default to `/tmp/codex-usage` through `.env` `DATA_PATH`. On Windows, first-run `.env` creation writes `C:\Temp\codex-usage` to `DATA_PATH`.
 Codex session data is read from the current user's `.codex` folder by default, or from `.env` CODEX_HOME when configured.
 Windows drive paths are supported in `.env` and CLI options. Quote paths that contain spaces.
+Invalid OS paths for output folders result in a runtime error.
 
 ```bash
 DATA_PATH="C:\Users\example\Codex Usage"

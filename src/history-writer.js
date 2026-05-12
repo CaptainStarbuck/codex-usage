@@ -3,6 +3,7 @@ import { appendFile, mkdir } from 'node:fs/promises';
 import { DEFAULT_DATA_PATH, DEFAULT_HISTORY_FILE_NAME } from './constants.js';
 import {
     dirnameConfiguredPath,
+    normalizeConfiguredOutputPath,
     resolveConfiguredFileDestination,
     resolveConfiguredPath,
 } from './path-utils.js';
@@ -21,7 +22,13 @@ import {
  * @returns {Promise<void>} Resolves after the snapshot is appended.
  */
 export async function appendHistorySnapshot(report, options) {
-    const safePath = resolveHistoryPath(getHistoryPath(options));
+    const historyPath = getHistoryPath(options);
+    const safePath = resolveHistoryPath(
+        normalizeConfiguredOutputPath(
+            historyPath,
+            dirnameConfiguredPath(historyPath)
+        )
+    );
     const snapshot = {
         captured_at: report.metadata.generated_at,
         window_minutes: report.window.minutes,
