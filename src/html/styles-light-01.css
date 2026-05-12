@@ -7,6 +7,7 @@
     --text: #10243a;
     --muted: #55708c;
     --line: #b7cbde;
+    --bar: #c9dceb;
     --cached: #008f9c;
     --effective: #2f6fca;
     --output: #b86f00;
@@ -101,7 +102,7 @@ h3 {
 .bar {
     height: 8px;
     margin-top: 12px;
-    background: #c9dceb;
+    background: var(--bar);
     border-radius: 999px;
     overflow: hidden;
 }
