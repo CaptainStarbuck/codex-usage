@@ -212,14 +212,14 @@ h3 {
 table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 1060px;
+    table-layout: fixed;
 }
 th,
 td {
     padding: 10px 12px;
     border-bottom: 1px solid var(--line);
     text-align: left;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
     font-size: 0.9rem;
 }
 th {

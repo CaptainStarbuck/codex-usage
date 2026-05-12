@@ -531,6 +531,19 @@ function eventRowKey(row) {
 }
 
 /**
+ * Converts report field keys to user-facing table labels.
+ *
+ * @param {string} column Report field key.
+ * @returns {string} Common-cased label using the same words as the field key.
+ */
+function columnLabel(column) {
+    return column
+        .split('_')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+}
+
+/**
  * Renders a sortable table and restores Events detail expansion state.
  *
  * @param {string} id Table element id.
@@ -574,7 +587,7 @@ function renderTable(id, rows, columns, options = {}) {
                         '<th data-column="' +
                         html(column) +
                         '">' +
-                        html(column) +
+                        html(columnLabel(column)) +
                         '</th>'
                 )
                 .join('') +
@@ -665,7 +678,7 @@ function renderTableRow(row, columns, index, options, expanded = false) {
         .map(
             (column) =>
                 '<span>' +
-                html(column) +
+                html(columnLabel(column)) +
                 '<b>' +
                 html(display(column, row[column])) +
                 '</b></span>'

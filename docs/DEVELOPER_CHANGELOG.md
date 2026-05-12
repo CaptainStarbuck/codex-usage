@@ -13,6 +13,7 @@ These are details about other changes, and trivial details that don't warrant a 
 #### Changed
 
 - Routed HTML rendering through a runtime `stylesPath` option instead of reading one fixed stylesheet in the renderer.
+- Changed Models and Events table headers to common-cased field labels and adjusted report table layout to size columns against available panel width.
 
 ### 2026-05-11 / v1.0.5
 

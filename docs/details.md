@@ -48,7 +48,7 @@ Insights include no-event windows, unavailable quota data, stale quota snapshots
 
 The command supports `--format text|json|html`. The default `text` format preserves the fixed-width event table and includes a corrected summary section. The `json` format emits the structured report object. The `html` format emits a standalone static browser dashboard and can be written with `--out`. Filename-only output values are written under `DATA_PATH`; output values with a folder path are used directly.
 
-The browser dashboard includes quota cards, summary cards, a stacked SVG timeline, warnings and notices, top sessions, top events, model summaries, and collapsible event details. Table overflow is contained within table panels so wide event data does not force page-level horizontal scrolling. HTML report styling is read from the configured CSS file. Filename-only style values are read from `src/html`; values with a folder path are used directly.
+The browser dashboard includes quota cards, summary cards, a stacked SVG timeline, warnings and notices, top sessions, top events, model summaries, and collapsible event details. HTML report styling is read from the configured CSS file. Filename-only style values are read from `src/html`; values with a folder path are used directly.
 
 The Events table stores its expanded detail rows and active sort order in browser `localStorage`, scoped to the report file path, Codex home, and report window length. This lets browser refreshes keep expanded rows open when the same event row is present in the regenerated report.
 
