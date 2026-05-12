@@ -17,12 +17,12 @@ The direct CLI entry point uses only Node.js built-in modules.
 The command creates `.env` from `.env.example` when `.env` is not present. Set local folder preferences in `.env`:
 
 ```bash
-DATA_PATH=/tmp
-DATA_PATH_WINDOWS_DEFAULT=C:\temp
+DATA_PATH=/tmp/codex-usage
+DATA_PATH_WINDOWS_DEFAULT=C:\Temp\codex-usage
 CODEX_HOME=
 ```
 
-History capture uses `DATA_PATH` when `--history` is not provided. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH` so the default data folder is `C:\temp`. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. Use `--data-path` or `--codex-home` to override these settings for a single run.
+Output and history filenames use `DATA_PATH` when no folder path is included. The configured `DATA_PATH` folder is created when the command starts. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH` so the default data folder is `C:\Temp\codex-usage`. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. Use `--data-path` or `--codex-home` to override these settings for a single run.
 
 Windows drive paths can be used in `.env`. Quote paths that contain spaces:
 
@@ -60,10 +60,11 @@ node src/codex-usage.js --format text
 node src/codex-usage.js --format json
 ```
 
-HTML output writes a standalone browser dashboard when used with `--out`. The default path for output is the current project folder, not DATA_PATH. Specify a folder path if desired:
+HTML output writes a standalone browser dashboard when used with `--out`. A filename-only value is written under `DATA_PATH`; use `./filename` to write to the current folder:
 
 ```bash
 node src/codex-usage.js --format html --out codex-usage.html
+node src/codex-usage.js --format html --out ./codex-usage.html
 ```
 
 Open the generated HTML file in a browser to review quota cards, summary cards, warnings, timeline, top sessions, top events, model summaries, and the sortable Events table.
@@ -92,10 +93,11 @@ History capture appends one compact JSON object per run:
 node src/codex-usage.js --minutes 60 --save-history
 ```
 
-The default history file is `data/codex-usage/history.jsonl` under `DATA_PATH`. Use `--history` to choose another path:
+The default history file is `history.jsonl` under `DATA_PATH`. Filename-only `--history` values are also written under `DATA_PATH`; use `./history.jsonl` to write to the current folder:
 
 ```bash
 node src/codex-usage.js --minutes 60 --history /tmp/codex-usage-history.jsonl
+node src/codex-usage.js --minutes 60 --history ./history.jsonl
 ```
 
 Use `--data-path` to choose the configured data folder for one run:

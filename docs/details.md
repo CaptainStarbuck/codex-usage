@@ -46,7 +46,7 @@ Insights include no-event windows, unavailable quota data, stale quota snapshots
 
 ## Output Formats
 
-The command supports `--format text|json|html`. The default `text` format preserves the fixed-width event table and includes a corrected summary section. The `json` format emits the structured report object. The `html` format emits a standalone static browser dashboard and can be written with `--out`.
+The command supports `--format text|json|html`. The default `text` format preserves the fixed-width event table and includes a corrected summary section. The `json` format emits the structured report object. The `html` format emits a standalone static browser dashboard and can be written with `--out`. Filename-only output values are written under `DATA_PATH`; output values with a folder path are used directly.
 
 The browser dashboard includes quota cards, summary cards, a stacked SVG timeline, warnings and notices, top sessions, top events, model summaries, and collapsible event details. Table overflow is contained within table panels so wide event data does not force page-level horizontal scrolling.
 
@@ -62,11 +62,11 @@ Each interval run uses a fresh `now` and cutoff time, so a command such as `--mi
 
 ## History
 
-History capture is opt-in. `--save-history` appends one compact JSON object per run to `data/codex-usage/history.jsonl` under `DATA_PATH`. `--history <path>` appends to the provided path and enables history capture.
+History capture is opt-in. `--save-history` appends one compact JSON object per run to `history.jsonl` under `DATA_PATH`. Filename-only `--history` values are written under `DATA_PATH`; history values with a folder path are used directly.
 
 ## Configuration
 
-The CLI reads `.env` from the project root. When `.env` is not present, the CLI creates `.env` from `.env.example` before reading settings. On Windows, `.env` creation copies `DATA_PATH_WINDOWS_DEFAULT` to `DATA_PATH` so app-managed data defaults to `C:\temp`. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. The `--data-path` and `--codex-home` CLI options override these settings for a single run.
+The CLI reads `.env` from the project root. When `.env` is not present, the CLI creates `.env` from `.env.example` before reading settings. On Windows, `.env` creation copies `DATA_PATH_WINDOWS_DEFAULT` to `DATA_PATH` so app-managed data defaults to `C:\Temp\codex-usage`; other platforms default to `/tmp/codex-usage`. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file, and is created when the command starts. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. The `--data-path` and `--codex-home` CLI options override these settings for a single run.
 
 Configured paths are joined, resolved, and displayed with native path rules. Windows drive, UNC, and backslash paths use Windows path rules so `.env` and CLI values such as `C:\Users\example` remain valid.
 

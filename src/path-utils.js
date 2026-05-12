@@ -62,6 +62,22 @@ export function joinConfiguredPath(basePath, ...segments) {
 }
 
 /**
+ * Resolves a configured file destination against a default folder when only
+ * a filename is provided.
+ *
+ * @param {string} filePath File path or filename to inspect.
+ * @param {string} defaultFolder Folder used when filePath is only a filename.
+ * @returns {string} File destination path.
+ */
+export function resolveConfiguredFileDestination(filePath, defaultFolder) {
+    if (isConfiguredFilenameOnly(filePath)) {
+        return joinConfiguredPath(defaultFolder, filePath);
+    }
+
+    return filePath;
+}
+
+/**
  * Resolves a path using native semantics or Windows semantics for Windows-style input.
  *
  * @param {string} filePath Path to resolve.
@@ -69,6 +85,16 @@ export function joinConfiguredPath(basePath, ...segments) {
  */
 export function resolveConfiguredPath(filePath) {
     return getPathApi(filePath).resolve(filePath);
+}
+
+/**
+ * Checks whether a configured path is only a filename with no folder path.
+ *
+ * @param {string} filePath Path to inspect.
+ * @returns {boolean} True when the value contains no directory component.
+ */
+function isConfiguredFilenameOnly(filePath) {
+    return !/[\\/]/u.test(filePath) && !WINDOWS_VOLUME_PATTERN.test(filePath);
 }
 
 /**

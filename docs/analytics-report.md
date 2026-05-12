@@ -82,4 +82,4 @@ The command supports `--minutes`, `--codex-home`, `--data-path`, `--format`, `--
 
 ## History
 
-History is opt-in. `--save-history` appends a compact JSONL summary to `data/codex-usage/history.jsonl` under `DATA_PATH`. `--data-path <path>` overrides `DATA_PATH` for the run. `--history <path>` writes to a specific path and also enables capture.
+History is opt-in. `--save-history` appends a compact JSONL summary to `history.jsonl` under `DATA_PATH`. `--data-path <path>` overrides `DATA_PATH` for the run. Filename-only `--history` values use `DATA_PATH`; values with a folder path are used directly.

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
+import { mkdir } from 'node:fs/promises';
+
 import { DEFAULT_WINDOW_MINUTES } from './constants.js';
+import { resolveConfiguredPath } from './path-utils.js';
 import { readAppEnvironment } from './settings.js';
 import { runInterval, runOnce } from './usage-runner.js';
 
@@ -136,7 +139,7 @@ function parseArgs(args) {
  * @returns {void}
  */
 function printHelp() {
-    console.log(`Usage: node src/codex-usage.js [--minutes 15] [--codex-home /home/codex/.codex] [--data-path /tmp] [--format text|json|html] [--out path] [--interval seconds] [--force-refresh] [--save-history] [--history path]
+    console.log(`Usage: node src/codex-usage.js [--minutes 15] [--codex-home /home/codex/.codex] [--data-path /tmp/codex-usage] [--format text|json|html] [--out path] [--interval seconds] [--force-refresh] [--save-history] [--history path]
 
 Shows Codex token usage analytics from session JSONL files for the selected window.
 Use --interval with --out to regenerate the output file until a terminal keypress stops the loop at the next interval.
@@ -167,11 +170,14 @@ async function main() {
  */
 async function loadRuntimeOptions(options) {
     const environment = await readAppEnvironment();
+    const dataPath = options.dataPath ?? environment.dataPath;
+
+    await mkdir(resolveConfiguredPath(dataPath), { recursive: true });
 
     return {
         ...options,
         codexHome: options.codexHome ?? environment.codexHome,
-        dataPath: options.dataPath ?? environment.dataPath,
+        dataPath,
     };
 }
 

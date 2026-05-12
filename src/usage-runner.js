@@ -1,6 +1,11 @@
-import { writeFile } from 'node:fs/promises';
+import { mkdir, writeFile } from 'node:fs/promises';
 
+import { DEFAULT_DATA_PATH } from './constants.js';
 import { appendHistorySnapshot } from './history-writer.js';
+import {
+    dirnameConfiguredPath,
+    resolveConfiguredFileDestination,
+} from './path-utils.js';
 import { renderReport } from './report-renderer.js';
 import { loadUsageData } from './usage-loader.js';
 import { buildUsageReport } from './usage-metrics.js';
@@ -45,11 +50,29 @@ export async function runOnce(options) {
     }
 
     if (options.out) {
-        await writeFile(options.out, output, 'utf8');
+        await writeOutputFile(options.out, output, options);
         return;
     }
 
     process.stdout.write(output);
+}
+
+/**
+ * Writes rendered output to the configured output file.
+ *
+ * @param {string} outPath User-provided output path.
+ * @param {string} output Rendered report output.
+ * @param {RunOptions} options Runtime options.
+ * @returns {Promise<void>} Resolves after the output file is written.
+ */
+async function writeOutputFile(outPath, output, options) {
+    const outputPath = resolveConfiguredFileDestination(
+        outPath,
+        options.dataPath ?? DEFAULT_DATA_PATH
+    );
+
+    await mkdir(dirnameConfiguredPath(outputPath), { recursive: true });
+    await writeFile(outputPath, output, 'utf8');
 }
 
 /**

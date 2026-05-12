@@ -9,9 +9,10 @@ Summary: This is a roll-up from 1.0.x.
 
 - Windows is now supported.
 - Output is no longer hardcoded to specific folders.
-- .env is auto-generated and now defaults write operations under /tmp.
+- .env is auto-generated and now defaults write operations under `/tmp/codex-usage`.
 - CLI overrides allow runtime overrides.
 - Documentation has been cleaned up a bit.
+- Filename-only output and history paths now write under `DATA_PATH`.
 
 ### 2026-05-11 / v1.0.5
 
@@ -21,7 +22,9 @@ Summary: This is a roll-up from 1.0.x.
 - Added MIT License file.
 - Significant refactoring of report-html.js into smaller maintainable modules.
 - The command creates `.env` from `.env.example` when `.env` is not present.
-- First-run `.env` creation uses `C:\temp` as `DATA_PATH` on Windows.
+- First-run `.env` creation uses `C:\Temp\codex-usage` as `DATA_PATH` on Windows.
+- `--out` path handling now uses `DATA_PATH` for filename-only values and direct paths when a folder is included.
+- The default history file now writes directly under `DATA_PATH`.
 
 ### 2026-05-11 / v1.0.4
 
@@ -40,7 +43,7 @@ Summary: This is a roll-up from 1.0.x.
 
 #### Enhanced
 
-- Added .env.example with `DATA_PATH=/tmp` configuration for the default local history storage location. Copy to .env and modify.
+- Added .env.example with `DATA_PATH=/tmp/codex-usage` configuration for the default local history storage location. Copy to .env and modify.
 - Added DEVELOPER_CHANGELOG.md to docs and index.
 
 ### 2026-05-11 / v1.0.1

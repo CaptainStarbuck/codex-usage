@@ -1,12 +1,9 @@
 import { appendFile, mkdir } from 'node:fs/promises';
 
-import {
-    DEFAULT_DATA_PATH,
-    DEFAULT_HISTORY_RELATIVE_PATH,
-} from './constants.js';
+import { DEFAULT_DATA_PATH, DEFAULT_HISTORY_FILE_NAME } from './constants.js';
 import {
     dirnameConfiguredPath,
-    joinConfiguredPath,
+    resolveConfiguredFileDestination,
     resolveConfiguredPath,
 } from './path-utils.js';
 
@@ -49,12 +46,9 @@ export async function appendHistorySnapshot(report, options) {
  * @returns {string} Explicit or default history path.
  */
 function getHistoryPath(options) {
-    return (
-        options.history ??
-        joinConfiguredPath(
-            options.dataPath ?? DEFAULT_DATA_PATH,
-            DEFAULT_HISTORY_RELATIVE_PATH
-        )
+    return resolveConfiguredFileDestination(
+        options.history ?? DEFAULT_HISTORY_FILE_NAME,
+        options.dataPath ?? DEFAULT_DATA_PATH
     );
 }
 
