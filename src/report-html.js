@@ -5,24 +5,24 @@ import { fileURLToPath } from 'node:url';
 const HTML_SOURCE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'html');
 const BASE_TEMPLATE_PATH = join(HTML_SOURCE_DIR, 'base.html');
 const REPORT_SCRIPT_PATH = join(HTML_SOURCE_DIR, 'report.js');
-const STYLES_PATH = join(HTML_SOURCE_DIR, 'styles.css');
 
 /**
  * @typedef {object} HtmlRenderOptions
  * @property {number | undefined} refreshSeconds Optional page refresh delay in seconds.
+ * @property {string} stylesPath HTML report stylesheet path.
  */
 
 /**
  * Renders a standalone static HTML usage dashboard.
  *
  * @param {object} report Structured usage report.
- * @param {HtmlRenderOptions} [options] HTML rendering options.
+ * @param {HtmlRenderOptions} options HTML rendering options.
  * @returns {string} HTML document.
  */
-export function renderHtmlReport(report, options = {}) {
+export function renderHtmlReport(report, options) {
     const replacements = new Map([
         ['refresh.script', renderRefreshScript(options.refreshSeconds)],
-        ['styles.css', readHtmlSourceFile(STYLES_PATH)],
+        ['styles.css', readHtmlSourceFile(options.stylesPath)],
         ['report.json', escapeScriptJson(report)],
         ['report.js', readHtmlSourceFile(REPORT_SCRIPT_PATH)],
     ]);

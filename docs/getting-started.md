@@ -20,9 +20,10 @@ The command creates `.env` from `.env.example` when `.env` is not present. Set l
 DATA_PATH=/tmp/codex-usage
 DATA_PATH_WINDOWS_DEFAULT=C:\Temp\codex-usage
 CODEX_HOME=
+STYLES=styles-dark-01.css
 ```
 
-Output and history filenames use `DATA_PATH` when no folder path is included. The configured `DATA_PATH` folder is created when the command starts. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH` so the default data folder is `C:\Temp\codex-usage`. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. Use `--data-path` or `--codex-home` to override these settings for a single run.
+Output and history filenames use `DATA_PATH` when no folder path is included. The configured `DATA_PATH` folder is created when the command starts. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH` so the default data folder is `C:\Temp\codex-usage`. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. HTML reports use `STYLES` to select a CSS file. Use `--data-path`, `--codex-home`, or `--styles` to override these settings for a single run.
 
 Windows drive paths can be used in `.env`. Quote paths that contain spaces:
 
@@ -60,7 +61,7 @@ node src/codex-usage.js --format text
 node src/codex-usage.js --format json
 ```
 
-HTML output writes a standalone browser dashboard when used with `--out`. A filename-only value is written under `DATA_PATH`; use `./filename` to write to the current folder:
+HTML output writes a standalone browser dashboard when used with `--out`. A filename-only value is written under `DATA_PATH`; use `./filename` to write to the current folder. HTML report styling is selected from the configured stylesheet:
 
 ```bash
 node src/codex-usage.js --format html --out codex-usage.html

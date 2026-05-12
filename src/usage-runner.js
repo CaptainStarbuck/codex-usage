@@ -22,6 +22,7 @@ import { buildUsageReport } from './usage-metrics.js';
  * @property {number} minutes Report window length in minutes.
  * @property {string | undefined} out Optional output file path.
  * @property {boolean} saveHistory Whether to append a history snapshot.
+ * @property {string} stylesPath HTML report stylesheet path.
  */
 
 /**

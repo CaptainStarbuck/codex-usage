@@ -78,7 +78,7 @@ For HTML interval output, `--force-refresh` embeds a page reload timer at `inter
 
 ## CLI Options
 
-The command supports `--minutes`, `--codex-home`, `--data-path`, `--format`, `--out`, `--interval`, `--force-refresh`, `--save-history`, `--history`, `--help`, and `-h`. Windows paths are supported for folder and file options. [cli-reference.md](./cli-reference.md) contains defaults, constraints, and examples.
+The command supports `--minutes`, `--codex-home`, `--data-path`, `--format`, `--out`, `--styles`, `--style`, `--interval`, `--force-refresh`, `--save-history`, `--history`, `--help`, and `-h`. Windows paths are supported for folder and file options. [cli-reference.md](./cli-reference.md) contains defaults, constraints, and examples.
 
 ## History
 

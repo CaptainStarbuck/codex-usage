@@ -3,6 +3,10 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+### 2026-05-12 / v1.1.1
+
+- Dynamic HTML report styling, currently with two available files, one light and one dark.
+
 ### 2026-05-11 / v1.1.0
 
 Summary: This is a roll-up from 1.0.x.

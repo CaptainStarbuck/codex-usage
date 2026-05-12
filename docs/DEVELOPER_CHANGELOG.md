@@ -2,6 +2,18 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
+### 2026-05-12 / v1.1.1
+
+#### Enhanced
+
+- Added HTML stylesheet selection through `STYLES`, `--styles`, and the `--style` synonym.
+- Added stylesheet path resolution for aliases, extensionless filenames, `src/html` filename defaults, direct paths, OS path validation, and read-access errors.
+- Added `src/html/styles-light-01.css` and `src/html/styles-dark-01.css` as selectable report styles.
+
+#### Changed
+
+- Routed HTML rendering through a runtime `stylesPath` option instead of reading one fixed stylesheet in the renderer.
+
 ### 2026-05-11 / v1.0.5
 
 #### Enhanced
