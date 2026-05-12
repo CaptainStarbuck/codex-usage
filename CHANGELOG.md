@@ -6,6 +6,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 ### 2026-05-12 / v1.1.1
 
 - Dynamic HTML report styling, currently with two available files, one light and one dark.
+- Added the `DATETIME_FORMAT` `.env` value, now used to standardize the output format of all date/time values in the HTML report. See `docs/datetime.md`.
 - Models and Events tables use user-friendly column headers and fit columns to the available report width.
 - Top Events cards display the session on its own line above the event metric columns.
 
@@ -47,7 +48,7 @@ Summary: This is a roll-up from 1.0.x.
 #### Enhanced
 
 - Added `--data-path` to override `DATA_PATH` for a single run.
-- Trimmed README to essentials, now refers to `getting-started.md` for details.
+- Trimmed README to essentials, now refers to `docs/getting-started.md` for details.
 
 ### 2026-05-11 / v1.0.2
 

@@ -39,7 +39,7 @@ const STYLE_NAME_ALIASES = new Map([
  */
 
 /**
- * @typedef {ParsedRuntimeOptions & { codexHome: string, dataPath: string, stylesPath: string }} RuntimeOptions
+ * @typedef {ParsedRuntimeOptions & { codexHome: string, dataPath: string, datetimeFormat: string, stylesPath: string }} RuntimeOptions
  */
 
 /**
@@ -209,6 +209,7 @@ async function loadRuntimeOptions(options) {
         ...options,
         codexHome: options.codexHome ?? environment.codexHome,
         dataPath,
+        datetimeFormat: environment.datetimeFormat,
         stylesPath,
     };
 }

@@ -21,9 +21,10 @@ DATA_PATH=/tmp/codex-usage
 DATA_PATH_WINDOWS_DEFAULT=C:\Temp\codex-usage
 CODEX_HOME=
 STYLES=styles-dark-01.css
+DATETIME_FORMAT=MMM D, h:mm AP
 ```
 
-Output and history filenames use `DATA_PATH` when no folder path is included. The configured `DATA_PATH` folder is created when the command starts. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH` so the default data folder is `C:\Temp\codex-usage`. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. HTML reports use `STYLES` to select a CSS file. Use `--data-path`, `--codex-home`, or `--styles` to override these settings for a single run.
+Output and history filenames use `DATA_PATH` when no folder path is included. The configured `DATA_PATH` folder is created when the command starts. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH` so the default data folder is `C:\Temp\codex-usage`. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. HTML reports use `STYLES` to select a CSS file. Use `--data-path`, `--codex-home`, or `--styles` to override these settings for a single run. The `.env` file also supports `DATETIME_FORMAT`, see `docs/datetime.md`.
 
 Windows drive paths can be used in `.env`. Quote paths that contain spaces:
 

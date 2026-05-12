@@ -33,6 +33,7 @@ DATA_PATH=/tmp/codex-usage
 DATA_PATH_WINDOWS_DEFAULT=C:\Temp\codex-usage
 CODEX_HOME=
 STYLES=styles-dark-01.css
+DATETIME_FORMAT=MMM D, h:mm AP
 ```
 
 `DATA_PATH` is the base folder for app-managed data and is created when the command starts. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH`. Filename-only `--out` and `--history` values are written under `DATA_PATH`; use a path such as `./report.html` to write to the current folder. Use `--data-path` to override `DATA_PATH` for a single run.
@@ -40,6 +41,8 @@ STYLES=styles-dark-01.css
 `CODEX_HOME` selects the Codex home folder to scan. Leave it empty to use the current user's `.codex` folder. If the configured value does not include `.codex`, the command appends `.codex`. Use `--codex-home` to override `CODEX_HOME` for a single run.
 
 `STYLES` selects the CSS file for HTML reports. Filename-only values are read from `src/html`; use a path such as `./report-styles.css` to read from the current folder. Use `--styles` or `--style` to override `STYLES` for a single run.
+
+`DATETIME_FORMAT` is available as an `.env` value.
 
 Windows drive paths are supported in `.env` and CLI options. Quotes are required when a path contains spaces:
 

@@ -4,6 +4,7 @@ import { join } from 'node:path';
 export const DEFAULT_DATA_PATH = '/tmp/codex-usage';
 export const DATA_PATH_WINDOWS_DEFAULT = 'C:\\Temp\\codex-usage';
 export const DEFAULT_CODEX_HOME = join(homedir(), '.codex');
+export const DEFAULT_DATETIME_FORMAT = 'MMM D, h:mm AP';
 export const DEFAULT_HISTORY_FILE_NAME = 'history.jsonl';
 export const DEFAULT_STYLES_FILE_NAME = 'styles-dark-01.css';
 export const DEFAULT_WINDOW_MINUTES = 15;

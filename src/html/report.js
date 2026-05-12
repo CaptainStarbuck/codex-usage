@@ -36,6 +36,7 @@ const detailColumns = [
     'raw_total_tokens',
     'file',
 ];
+const datetimeFormat = report.metadata?.datetime_format || 'MMM D, h:mm AP';
 const eventTableState = readEventTableState();
 
 function integer(value) {
@@ -46,7 +47,62 @@ function percent(value) {
     return (Number(value || 0) * 100).toFixed(1) + '%';
 }
 
+/**
+ * Formats a timestamp-like value with the configured display mask.
+ *
+ * @param {string | number | Date | undefined} value Timestamp value.
+ * @returns {string} Formatted display value.
+ */
+function datetime(value) {
+    const date = value instanceof Date ? value : new Date(value ?? '');
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value ?? '');
+    }
+
+    const monthShort = new Intl.DateTimeFormat(undefined, {
+        month: 'short',
+    }).format(date);
+    const day = String(date.getDate());
+    const hour24 = date.getHours();
+    const hour12 = String(hour24 % 12 || 12);
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const second = String(date.getSeconds()).padStart(2, '0');
+    const meridiem = hour24 < 12 ? 'AM' : 'PM';
+
+    /** @type {Record<string, string>} */
+    const tokens = {
+        MMM: monthShort,
+        DD: day.padStart(2, '0'),
+        D: day,
+        HH: String(hour24).padStart(2, '0'),
+        H: String(hour24),
+        hh: hour12.padStart(2, '0'),
+        h: hour12,
+        mm: minute,
+        ss: second,
+        AP: meridiem,
+        A: meridiem,
+        a: meridiem.toLowerCase(),
+    };
+
+    return datetimeFormat.replace(
+        /MMM|DD|D|HH|H|hh|h|mm|ss|AP|A|a/gu,
+        (token) => tokens[token] ?? token
+    );
+}
+
+/**
+ * Formats a report field value for visible HTML output.
+ *
+ * @param {string} field Report field key.
+ * @param {unknown} value Raw field value.
+ * @returns {string | number} Display-ready field value.
+ */
 function display(field, value) {
+    if (field === 'timestamp' || field.endsWith('_timestamp')) {
+        return datetime(value);
+    }
     if (field.endsWith('_rate')) {
         return percent(value);
     }
@@ -56,7 +112,7 @@ function display(field, value) {
     if (numberFields.has(field)) {
         return integer(value);
     }
-    return value ?? '';
+    return String(value ?? '');
 }
 
 function html(value) {
@@ -111,6 +167,11 @@ function renderSummary() {
         .join('');
 }
 
+/**
+ * Renders account quota cards.
+ *
+ * @returns {void}
+ */
 function renderQuota() {
     const node = document.getElementById('quota');
     const quota = report.quota || {};
@@ -132,8 +193,8 @@ function renderQuota() {
             '%</div><div class="detail">' +
             Number(limit.used_percent || 0).toFixed(1) +
             '% used' +
-            (limit.resets_at_local
-                ? ', resets ' + html(limit.resets_at_local)
+            (limit.resets_at
+                ? ', resets ' + html(datetime(limit.resets_at * 1000))
                 : '') +
             '</div><div class="bar"><span style="width:' +
             Math.max(0, Math.min(100, Number(limit.remaining_percent || 0))) +
@@ -184,6 +245,11 @@ function renderInsights() {
         '</div>';
 }
 
+/**
+ * Renders the highest-volume sessions as compact dashboard cards.
+ *
+ * @returns {void}
+ */
 function renderTopSessions() {
     const node = document.getElementById('top-sessions');
     const sessions = [...(report.sessions || [])]
@@ -208,9 +274,9 @@ function renderTopSessions() {
                 '</span></header><div class="stats"><span>Events<b>' +
                 integer(session.event_count) +
                 '</b></span><span>First<b>' +
-                html(session.first_timestamp) +
+                html(datetime(session.first_timestamp)) +
                 '</b></span><span>Last<b>' +
-                html(session.last_timestamp) +
+                html(datetime(session.last_timestamp)) +
                 '</b></span><span>Effective Input<b>' +
                 integer(session.effective_input_tokens) +
                 '</b></span><span>Cache Hit Rate<b>' +
@@ -249,7 +315,7 @@ function renderTopEvents() {
         .map(
             (row) =>
                 '<article class="list-item"><header><strong>' +
-                html(row.timestamp) +
+                html(datetime(row.timestamp)) +
                 '</strong><span class="value">' +
                 integer(row.observed_token_volume) +
                 '</span></header><div class="stats"><span class="stat-wide">Session<b>' +
@@ -363,6 +429,12 @@ function renderTimeline() {
         '</text></svg><div class="legend"><span style="--legend-color: var(--cached)">Cached input</span><span style="--legend-color: var(--effective)">Effective input</span><span style="--legend-color: var(--output)">Output</span><span style="--legend-color: var(--reasoning)">Reasoning output</span></div>';
 }
 
+/**
+ * Groups usage rows into timeline buckets for the SVG chart.
+ *
+ * @param {object[]} rows Report event rows.
+ * @returns {object[]} Timeline buckets.
+ */
 function buildTimelineBuckets(rows) {
     const timestamps = rows
         .map((row) => new Date(row.timestamp).getTime())
@@ -398,7 +470,7 @@ function buildTimelineBuckets(rows) {
                 ? timestamp
                 : start + Number(key) * bucketMilliseconds;
         const bucket = buckets.get(key) || {
-            label: new Date(bucketStart).toISOString(),
+            label: datetime(bucketStart),
             timestamp: new Date(bucketStart).toISOString(),
             session_id: row.session_id,
             model: row.model,
@@ -722,14 +794,14 @@ function compareValues(left, right) {
 }
 
 document.getElementById('window').textContent =
-    report.window.cutoff +
+    datetime(report.window.cutoff) +
     ' to ' +
-    report.window.now +
+    datetime(report.window.now) +
     ' (' +
     report.window.minutes +
     ' minutes)';
 document.getElementById('generated').textContent =
-    'Generated ' + report.metadata.generated_at;
+    'Generated ' + datetime(report.metadata.generated_at);
 renderQuota();
 renderSummary();
 renderTimeline();

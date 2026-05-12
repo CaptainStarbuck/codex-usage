@@ -8,6 +8,7 @@ const REPORT_SCRIPT_PATH = join(HTML_SOURCE_DIR, 'report.js');
 
 /**
  * @typedef {object} HtmlRenderOptions
+ * @property {string} datetimeFormat HTML report datetime display format.
  * @property {number | undefined} refreshSeconds Optional page refresh delay in seconds.
  * @property {string} stylesPath HTML report stylesheet path.
  */
@@ -20,10 +21,11 @@ const REPORT_SCRIPT_PATH = join(HTML_SOURCE_DIR, 'report.js');
  * @returns {string} HTML document.
  */
 export function renderHtmlReport(report, options) {
+    const htmlReport = applyHtmlMetadata(report, options);
     const replacements = new Map([
         ['refresh.script', renderRefreshScript(options.refreshSeconds)],
         ['styles.css', readHtmlSourceFile(options.stylesPath)],
-        ['report.json', escapeScriptJson(report)],
+        ['report.json', escapeScriptJson(htmlReport)],
         ['report.js', readHtmlSourceFile(REPORT_SCRIPT_PATH)],
     ]);
 
@@ -31,6 +33,23 @@ export function renderHtmlReport(report, options) {
         readHtmlSourceFile(BASE_TEMPLATE_PATH),
         replacements
     );
+}
+
+/**
+ * Adds HTML-only display settings without mutating the structured report.
+ *
+ * @param {object} report Structured usage report.
+ * @param {HtmlRenderOptions} options HTML rendering options.
+ * @returns {object} Report copy with HTML display metadata.
+ */
+function applyHtmlMetadata(report, options) {
+    return {
+        ...report,
+        metadata: {
+            ...report.metadata,
+            datetime_format: options.datetimeFormat,
+        },
+    };
 }
 
 /**
