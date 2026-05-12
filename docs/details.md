@@ -66,7 +66,7 @@ History capture is opt-in. `--save-history` appends one compact JSON object per 
 
 ## Configuration
 
-The CLI reads `.env` from the project root. When `.env` is not present, the CLI copies `.env.example` to `.env` before reading settings. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. The `--data-path` and `--codex-home` CLI options override these settings for a single run.
+The CLI reads `.env` from the project root. When `.env` is not present, the CLI creates `.env` from `.env.example` before reading settings. On Windows, `.env` creation copies `DATA_PATH_WINDOWS_DEFAULT` to `DATA_PATH` so app-managed data defaults to `C:\temp`. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. The `--data-path` and `--codex-home` CLI options override these settings for a single run.
 
 Configured paths are joined, resolved, and displayed with native path rules. Windows drive, UNC, and backslash paths use Windows path rules so `.env` and CLI values such as `C:\Users\example` remain valid.
 

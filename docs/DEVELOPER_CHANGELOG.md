@@ -12,6 +12,7 @@ These are details about other changes, and trivial details that don't warrant a 
 - Refactored runtime report generation, renderer selection, history writing, and interval loop handling out of `src/codex-usage.js` into focused modules.
 - Updated `renderHtmlReport()` to assemble the standalone dashboard from `src/html` template, CSS, and browser script assets.
 - Added `.env` creation from `.env.example` inside the dotenv loader when the local file is missing.
+- Added `DATA_PATH_WINDOWS_DEFAULT` and platform-aware `.env` template preparation so Windows first-run data storage defaults to `C:\temp`.
 
 #### Changed
 

@@ -11,6 +11,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 - Added MIT License file.
 - Significant refactoring of report-html.js into smaller maintainable modules.
 - The command creates `.env` from `.env.example` when `.env` is not present.
+- First-run `.env` creation uses `C:\temp` as `DATA_PATH` on Windows.
 
 ### 2026-05-11 / v1.0.4
 

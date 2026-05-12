@@ -2,6 +2,7 @@ import { homedir } from 'node:os';
 import { join } from 'node:path';
 
 export const DEFAULT_DATA_PATH = '/tmp';
+export const DATA_PATH_WINDOWS_DEFAULT = 'C:\\temp';
 export const DEFAULT_CODEX_HOME = join(homedir(), '.codex');
 export const DEFAULT_HISTORY_RELATIVE_PATH = join(
     'data',

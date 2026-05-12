@@ -1,9 +1,13 @@
-import { constants as fsConstants } from 'node:fs';
-import { copyFile, readFile } from 'node:fs/promises';
+import { platform } from 'node:os';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { DEFAULT_CODEX_HOME, DEFAULT_DATA_PATH } from './constants.js';
+import {
+    DATA_PATH_WINDOWS_DEFAULT,
+    DEFAULT_CODEX_HOME,
+    DEFAULT_DATA_PATH,
+} from './constants.js';
 import { hasConfiguredPathSegment, joinConfiguredPath } from './path-utils.js';
 
 const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -78,7 +82,8 @@ async function readDotEnvFile(configPath) {
 }
 
 /**
- * Creates a missing `.env` file from `.env.example`, then parses `.env`.
+ * Creates a missing `.env` file from `.env.example`, applying OS-specific
+ * defaults before parsing `.env`.
  *
  * @param {string} configPath Dotenv file path.
  * @returns {Promise<Record<string, string>>} Parsed settings.
@@ -87,7 +92,10 @@ async function readCreatedDotEnvFile(configPath) {
     const examplePath = join(PROJECT_ROOT, '.env.example');
 
     try {
-        await copyFile(examplePath, configPath, fsConstants.COPYFILE_EXCL);
+        const exampleText = await readFile(examplePath, 'utf8');
+        await writeFile(configPath, prepareDotEnvTemplate(exampleText), {
+            flag: 'wx',
+        });
     } catch (error) {
         if (!isNodeFileError(error, 'EEXIST')) {
             return {};
@@ -100,6 +108,45 @@ async function readCreatedDotEnvFile(configPath) {
     } catch {
         return {};
     }
+}
+
+/**
+ * Applies runtime platform defaults to the `.env.example` template.
+ *
+ * @param {string} text Template dotenv file contents.
+ * @returns {string} Dotenv contents to write to `.env`.
+ */
+function prepareDotEnvTemplate(text) {
+    if (platform() !== 'win32') {
+        return text;
+    }
+
+    return replaceDotEnvSetting(text, 'DATA_PATH', DATA_PATH_WINDOWS_DEFAULT);
+}
+
+/**
+ * Replaces a dotenv setting while leaving comments and surrounding lines intact.
+ *
+ * @param {string} text Dotenv file contents.
+ * @param {string} key Setting name.
+ * @param {string} value Setting value.
+ * @returns {string} Dotenv contents with the setting assigned.
+ */
+function replaceDotEnvSetting(text, key, value) {
+    const escapedKey = key.replace(
+        /[.*+?^${}()|[\]\\]/gu,
+        (match) => `\\${match}`
+    );
+    const pattern = new RegExp(`^\\s*${escapedKey}\\s*=.*$`, 'mu');
+    const assignment = `${key}=${value}`;
+
+    if (pattern.test(text)) {
+        return text.replace(pattern, assignment);
+    }
+
+    return text.endsWith('\n')
+        ? `${text}${assignment}\n`
+        : `${text}\n${assignment}\n`;
 }
 
 /**

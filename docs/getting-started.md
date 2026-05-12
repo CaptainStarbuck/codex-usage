@@ -18,10 +18,11 @@ The command creates `.env` from `.env.example` when `.env` is not present. Set l
 
 ```bash
 DATA_PATH=/tmp
+DATA_PATH_WINDOWS_DEFAULT=C:\temp
 CODEX_HOME=
 ```
 
-History capture uses `DATA_PATH` when `--history` is not provided. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. Use `--data-path` or `--codex-home` to override these settings for a single run.
+History capture uses `DATA_PATH` when `--history` is not provided. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH` so the default data folder is `C:\temp`. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. Use `--data-path` or `--codex-home` to override these settings for a single run.
 
 Windows drive paths can be used in `.env`. Quote paths that contain spaces:
 
