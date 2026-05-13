@@ -21,11 +21,12 @@ const eventColumns = [
     'turn_index',
     'seconds_since_previous',
     'model',
-    'observed_token_volume',
-    'effective_input_tokens',
+    'input_tokens',
     'cached_input_tokens',
-    'cache_hit_rate',
+    'effective_input_tokens',
     'output_tokens',
+    'observed_token_volume',
+    'cache_hit_rate',
     'reasoning_output_tokens',
 ];
 const modelGroupColumns = [
@@ -38,7 +39,6 @@ const modelGroupColumns = [
     'cache_hit_rate',
     'output_tokens',
     'reasoning_output_tokens',
-    'raw_total_tokens',
 ];
 const modelGroupEventColumns = [
     'timestamp',
@@ -51,13 +51,6 @@ const modelGroupEventColumns = [
     'cache_hit_rate',
     'output_tokens',
     'reasoning_output_tokens',
-];
-const detailColumns = [
-    'input_tokens',
-    'visible_output_tokens',
-    'reasoning_output_rate',
-    'raw_total_tokens',
-    'file',
 ];
 const datetimeFormat = report.metadata?.datetime_format || 'MMM D, h:mm AP';
 const eventTableState = readEventTableState();
@@ -791,11 +784,15 @@ function columnLabel(column) {
  * Converts report field keys to safe label markup for table headers.
  *
  * @param {string} column Report field key.
+ * @param {Record<string, string>} [labels] Label overrides by field key.
  * @returns {string} Escaped header label markup.
  */
-function columnLabelHtml(column) {
+function columnLabelHtml(column, labels = {}) {
     if (column === 'turn_index') {
         return 'Turn<br>Index';
+    }
+    if (labels[column]) {
+        return html(labels[column]);
     }
 
     return html(columnLabel(column));
@@ -844,7 +841,7 @@ function renderColumnGroup(columns, withToggle = false) {
  * @param {string} id Table element id.
  * @param {object[]} rows Table rows.
  * @param {string[]} columns Visible columns.
- * @param {{ details?: boolean }} [options] Rendering options.
+ * @param {{ details?: boolean, labels?: Record<string, string> }} [options] Rendering options.
  * @returns {void}
  */
 function renderTable(id, rows, columns, options = {}) {
@@ -884,7 +881,7 @@ function renderTable(id, rows, columns, options = {}) {
                         '" data-column="' +
                         html(column) +
                         '">' +
-                        columnLabelHtml(column) +
+                        columnLabelHtml(column, options.labels) +
                         '</th>'
                 )
                 .join('') +
@@ -1264,16 +1261,6 @@ function renderTableRow(row, columns, index, options, expanded = false) {
         return '<tr>' + cells + '</tr>';
     }
     const detailId = 'event-' + index;
-    const detail = detailColumns
-        .map(
-            (column) =>
-                '<span>' +
-                html(columnLabel(column)) +
-                '<b>' +
-                html(display(column, row[column])) +
-                '</b></span>'
-        )
-        .join('');
     return (
         '<tr><td><button class="event-toggle" type="button" aria-expanded="' +
         String(expanded) +
@@ -1291,9 +1278,7 @@ function renderTableRow(row, columns, index, options, expanded = false) {
         (expanded ? '' : ' hidden') +
         '><td colspan="' +
         (columns.length + 1) +
-        '"><div class="event-detail">' +
-        detail +
-        '</div></td></tr>'
+        '"><div class="event-detail"><h3>Detail</h3></div></td></tr>'
     );
 }
 
@@ -1377,5 +1362,8 @@ renderInsights();
 renderModelGroupsTable('models-table', report.rows || []);
 renderTable('events-table', report.rows || [], eventColumns, {
     details: true,
+    labels: {
+        observed_token_volume: 'Total Tokens',
+    },
 });
 renderSessionPaths();

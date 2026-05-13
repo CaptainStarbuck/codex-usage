@@ -10,6 +10,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 - HTML report session columns display compact session hash references, and full session file paths appear in a Session Paths card.
 - HTML report numeric table headers align with numeric values, the Turn Index column is compact, and Events table model values include intelligence level.
 - HTML report Top Sessions and Top Events cards are temporarily disabled.
+- HTML report By Model no longer shows redundant Raw Total Tokens. Events table now shows organized token usage.
 
 ### 2026-05-12 / v1.1.1
 
