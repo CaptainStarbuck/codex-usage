@@ -11,6 +11,9 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 - HTML report numeric table headers align with numeric values, the Turn Index column is compact, and Events table model values include intelligence level.
 - HTML report Top Sessions and Top Events cards are temporarily disabled.
 - HTML report By Model no longer shows redundant Raw Total Tokens. Events table now shows organized token usage.
+- HTML report By Model collapsed rows no longer include Sessions, and event Session columns display compact hash and turn references.
+- HTML report event tables no longer include a dedicated Turn Index column.
+- HTML report Warnings and Insights now appears at the bottom of the report.
 
 ### 2026-05-12 / v1.1.1
 

@@ -18,7 +18,6 @@ const numberFields = new Set([
 const eventColumns = [
     'timestamp',
     'session_id',
-    'turn_index',
     'seconds_since_previous',
     'model',
     'input_tokens',
@@ -32,7 +31,6 @@ const eventColumns = [
 const modelGroupColumns = [
     'model',
     'event_count',
-    'sessions',
     'observed_token_volume',
     'effective_input_tokens',
     'cached_input_tokens',
@@ -43,7 +41,6 @@ const modelGroupColumns = [
 const modelGroupEventColumns = [
     'timestamp',
     'session_id',
-    'turn_index',
     'seconds_since_previous',
     'observed_token_volume',
     'effective_input_tokens',
@@ -160,6 +157,9 @@ function displayCell(row, field) {
             String(row.intelligence_level ?? 'unknown')
         );
     }
+    if (field === 'session_id' && Object.hasOwn(row, 'turn_index')) {
+        return sessionTurnReference(row.session_id, row.turn_index);
+    }
 
     return display(field, row[field]);
 }
@@ -177,6 +177,20 @@ function sessionReference(value) {
     );
 
     return match?.[1] ?? sessionId;
+}
+
+/**
+ * Gets the compact session and turn reference used in event tables.
+ *
+ * @param {unknown} sessionId Raw session id from a rollout filename.
+ * @param {unknown} turnIndex Event turn index within the session.
+ * @returns {string} Short session and turn reference.
+ */
+function sessionTurnReference(sessionId, turnIndex) {
+    const turn = Number(turnIndex ?? 0);
+    const turnSuffix = Number.isFinite(turn) && turn > 0 ? '/' + turn : '';
+
+    return sessionReference(sessionId) + turnSuffix;
 }
 
 /**
@@ -772,7 +786,7 @@ function columnLabel(column) {
         return 'Model';
     }
     if (column === 'session_id') {
-        return 'Session ID';
+        return 'Session';
     }
     return column
         .split('_')

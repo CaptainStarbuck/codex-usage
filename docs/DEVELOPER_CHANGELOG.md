@@ -17,6 +17,9 @@ These are details about other changes, and trivial details that don't warrant a 
 - Reduced duplicated configuration reference content in `docs/getting-started.md` and routed detailed option behavior to the CLI and datetime docs.
 - Temporarily commented out the HTML Top Sessions and Top Events dashboard markup and render calls.
 - Removed Raw Total Tokens from the By Model summary columns, moved Input Tokens into Events table main rows, relabeled observed event volume as Total Tokens in Events, and reduced Events detail rows to a Detail header.
+- Removed the Sessions column from collapsed By Model rows and added compact `hash/turn` formatting for event Session columns.
+- Removed the dedicated Turn Index column from Events and expanded By Model event tables while retaining turn index in compact Session values.
+- Moved the HTML Warnings and Insights placeholder below the Session Paths section.
 
 ### 2026-05-12 / v1.1.1
 
