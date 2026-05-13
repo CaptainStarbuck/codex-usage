@@ -2,6 +2,11 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
+### 2026-05-13 / v1.1.3
+
+- Added force-refresh metadata to the embedded HTML report model and moved browser reload scheduling into `src/html/report.js`.
+- Added an unlabeled right-aligned HTML report control panel and matching styles across the default, light, and dark stylesheets.
+
 ### 2026-05-13 / v1.1.2
 
 #### Changed

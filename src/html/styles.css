@@ -70,6 +70,28 @@ h3 {
     color: var(--muted);
     font-size: 0.92rem;
 }
+.report-controls {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+    padding: 6px;
+}
+.report-controls[hidden] {
+    display: none;
+}
+.control-button {
+    min-height: 30px;
+    padding: 4px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--panel-2);
+    color: var(--text);
+    cursor: pointer;
+    font: inherit;
+}
+.control-button[aria-pressed='false'] {
+    color: var(--muted);
+}
 .cards,
 .quota-cards {
     display: grid;

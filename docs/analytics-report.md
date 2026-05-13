@@ -42,7 +42,7 @@ The report uses raw numeric fields in structured data and leaves rounding to ren
 
 ## HTML Report
 
-The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains quota cards, summary cards, a stacked token timeline, model-level summaries, a sortable event table, a session path reference card, and warnings and notices at the bottom.
+The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains an optional refresh control panel, quota cards, summary cards, a stacked token timeline, model-level summaries, a sortable event table, a session path reference card, and warnings and notices at the bottom.
 
 The timeline uses inline SVG and stacks cached input, effective input, output, and reasoning output tokens. Browser titles on timeline bars include timestamp or bucket, session id, model, intelligence level, token values, and cache hit rate.
 
@@ -76,7 +76,7 @@ Insights call attention to notable report conditions:
 
 `--interval <seconds>` requires `--out` and repeatedly regenerates the selected output format. The first report is written immediately. Subsequent runs occur after each configured interval unless terminal input has requested shutdown. A keypress on the terminal stops the loop at the next interval boundary.
 
-For HTML interval output, `--force-refresh` embeds a page reload timer at `interval - 2` seconds. This lets a browser tab opened from the output file keep itself near the command's regenerated report cadence.
+For HTML interval output, `--force-refresh` embeds a page reload timer at `interval - 2` seconds. This lets a browser tab opened from the output file keep itself near the command's regenerated report cadence. Force-refresh reports include a right-aligned Refresh button above the report content. The button toggles browser auto-refresh off and on so the current page can stay unchanged while the CLI continues regenerating the output file.
 
 ## CLI Options
 

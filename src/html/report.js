@@ -50,8 +50,11 @@ const modelGroupEventColumns = [
     'reasoning_output_tokens',
 ];
 const datetimeFormat = report.metadata?.datetime_format || 'MMM D, h:mm AP';
+const refreshSeconds = Number(report.metadata?.refresh_seconds || 0);
 const eventTableState = readEventTableState();
 const modelGroupsTableState = readModelGroupsTableState();
+let refreshTimer = undefined;
+let refreshEnabled = false;
 
 function integer(value) {
     return Math.round(Number(value || 0)).toLocaleString('en-US');
@@ -221,6 +224,88 @@ function html(value) {
                 "'": '&#39;',
             })[character]
     );
+}
+
+/**
+ * Renders the optional report control panel.
+ *
+ * @returns {void}
+ */
+function renderReportControls() {
+    const node = document.getElementById('report-controls');
+
+    if (!Number.isFinite(refreshSeconds) || refreshSeconds < 1) {
+        return;
+    }
+
+    node.hidden = false;
+    node.innerHTML =
+        '<button class="control-button" type="button" id="refresh-toggle" aria-pressed="true">Stop Refresh</button>';
+    refreshEnabled = true;
+    document
+        .getElementById('refresh-toggle')
+        .addEventListener('click', toggleRefresh);
+    scheduleRefresh();
+}
+
+/**
+ * Toggles browser auto-refresh for force-refresh HTML reports.
+ *
+ * @returns {void}
+ */
+function toggleRefresh() {
+    refreshEnabled = !refreshEnabled;
+    updateRefreshControl();
+
+    if (refreshEnabled) {
+        scheduleRefresh();
+        return;
+    }
+
+    clearRefreshTimer();
+}
+
+/**
+ * Updates the refresh control label and pressed state.
+ *
+ * @returns {void}
+ */
+function updateRefreshControl() {
+    const button = document.getElementById('refresh-toggle');
+
+    button.setAttribute('aria-pressed', String(refreshEnabled));
+    button.textContent = refreshEnabled ? 'Stop Refresh' : 'Start Refresh';
+}
+
+/**
+ * Schedules the next browser reload while refresh mode is active.
+ *
+ * @returns {void}
+ */
+function scheduleRefresh() {
+    clearRefreshTimer();
+
+    if (!refreshEnabled) {
+        return;
+    }
+
+    refreshTimer = window.setTimeout(() => {
+        window.location.reload();
+    }, refreshSeconds * 1000);
+}
+
+/**
+ * Clears a pending browser reload timer.
+ *
+ * @returns {void}
+ */
+function clearRefreshTimer() {
+    if (refreshTimer === undefined) {
+        return;
+    }
+
+    window.clearTimeout(refreshTimer);
+    refreshTimer = undefined;
 }
 
 function renderSummary() {
@@ -1366,6 +1451,7 @@ document.getElementById('window').textContent =
     ' minutes)';
 document.getElementById('generated').textContent =
     'Generated ' + datetime(report.metadata.generated_at);
+renderReportControls();
 renderQuota();
 renderSummary();
 renderTimeline();

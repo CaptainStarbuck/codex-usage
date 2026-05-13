@@ -34,7 +34,7 @@ The command supports `--interval <seconds>` with `--out`. Interval mode runs one
 
 Each interval run uses a fresh `now` and cutoff time, so a command such as `--minutes 15 --interval 15` keeps the output focused on the latest rolling 15 minute window. If history capture is enabled, each interval run appends one history snapshot.
 
-`--force-refresh` can be used with `--format html --interval <seconds>`. The generated HTML includes a browser timer that reloads the page after `interval - 2` seconds. The interval must be at least 3 seconds.
+`--force-refresh` can be used with `--format html --interval <seconds>`. The generated HTML includes a browser timer that reloads the page after `interval - 2` seconds. Force-refresh reports include a Refresh button above the report content that toggles the browser timer off and on. The interval must be at least 3 seconds.
 
 ## History
 
@@ -64,7 +64,7 @@ The project source is organized into focused files:
 - `src/report-text.js`, `src/report-json.js`, and `src/report-html.js` render the structured report model as terminal text, JSON, or standalone HTML.
 - `docs/` contains the user and maintainer documentation.
 
-HTML report rendering uses template assets under `src/html`. `src/report-html.js` reads `base.html`, replaces full-line stub comments with the refresh script, selected CSS, escaped report JSON, and browser JavaScript, then returns the complete standalone document.
+HTML report rendering uses template assets under `src/html`. `src/report-html.js` reads `base.html`, adds HTML display metadata, replaces full-line stub comments with selected CSS, escaped report JSON, and browser JavaScript, then returns the complete standalone document. Browser JavaScript uses the refresh metadata to render controls and schedule page reloads when `--force-refresh` is active.
 
 ## Source Aggregate Utility
 

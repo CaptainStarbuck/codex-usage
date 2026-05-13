@@ -1,4 +1,4 @@
-# codex-usage v1.1.0
+# codex-usage v1.1.3
 
 ## What This Project Does
 
@@ -54,14 +54,14 @@ Options include:
 - Send data to a custom folder
 - Render plain text, JSON, or standalone HTML
 - Only include data from the previous N minutes
-- Regenerate the browser report every 10 seconds and make the open page refresh itself
+- Regenerate the browser report every 10 seconds, make the open page refresh itself, and pause or resume browser refreshes from the page
 - Maintain a compact local history snapshot of processed data
 
 The repository includes `src/utils/jsonl2json.js` as a convenience utility for converting Codex session JSONL files to formatted JSON. See [docs/jsonl2json.md](./docs/jsonl2json.md).
 
 ## .env **_New in v1.1_**
 
-Override default folders and settings in `.env`, now created for you. Check updates for changes in `.env.example`.
+Override default folders and settings in `.env`, which is created for you. Review `.env.example` for available values.
 
 ## Data folders
 

@@ -3,6 +3,10 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+### 2026-05-13 / v1.1.3
+
+- HTML reports generated with `--force-refresh` now include a Refresh control for pausing and resuming browser auto-refresh.
+
 ### 2026-05-13 / v1.1.2
 
 - The HTML Models section is labeled By Model and groups usage by model and intelligence level, with expandable event rows for each group.

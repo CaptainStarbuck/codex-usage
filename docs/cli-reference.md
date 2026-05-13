@@ -19,7 +19,7 @@ Use `--help` or `-h` to print command help.
 | `--out`           | File path                 | Standard output                                             | Writes the rendered report to a file. Filename-only values are written under `DATA_PATH`; paths such as `./report.html` or `/tmp/report.html` are used directly.                                                                                          |
 | `--styles`        | `light`, `dark`, or path  | `STYLES` from `.env`, or `styles-dark-01.css`               | Selects the HTML report CSS file. `--style` is a synonym. `--styles light` uses `styles-light-01.css`; `--styles dark` uses `styles-dark-01.css`. Filename-only values read from `src/html`; extensionless filenames add `.css`; paths are used directly. |
 | `--interval`      | Positive integer seconds  | Disabled                                                    | Regenerates the report repeatedly. Requires `--out` so each run has a destination file.                                                                                                                                                                   |
-| `--force-refresh` | Flag                      | Disabled                                                    | For HTML interval output, embeds a browser refresh timer of `interval - 2` seconds. Requires `--format html`, `--interval`, and an interval of at least 3 seconds.                                                                                        |
+| `--force-refresh` | Flag                      | Disabled                                                    | For HTML interval output, embeds a browser refresh timer of `interval - 2` seconds and adds a Refresh control for toggling browser auto-refresh off and on. Requires `--format html`, `--interval`, and an interval of at least 3 seconds.                |
 | `--save-history`  | Flag                      | Disabled                                                    | Appends a compact JSONL history snapshot to `history.jsonl` under `DATA_PATH`.                                                                                                                                                                            |
 | `--history`       | File path                 | `DATA_PATH/history.jsonl` when history is saved             | Appends history and enables history capture. Filename-only values are written under `DATA_PATH`; paths such as `./history.jsonl` or `/tmp/history.jsonl` are used directly.                                                                               |
 | `--help`, `-h`    | Flag                      | Disabled                                                    | Prints command usage and exits.                                                                                                                                                                                                                           |
@@ -112,6 +112,8 @@ Regenerate a browser report and make the open page refresh itself:
 ```bash
 node src/codex-usage.js --minutes 15 --format html --out codex-usage.html --interval 10 --force-refresh
 ```
+
+The generated page includes a Refresh button above the report content. Use it to pause browser reloads while inspecting the current data, then resume browser reloads when live updates are wanted again.
 
 Append a compact local history snapshot:
 

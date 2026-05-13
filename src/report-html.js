@@ -23,7 +23,6 @@ const REPORT_SCRIPT_PATH = join(HTML_SOURCE_DIR, 'report.js');
 export function renderHtmlReport(report, options) {
     const htmlReport = applyHtmlMetadata(report, options);
     const replacements = new Map([
-        ['refresh.script', renderRefreshScript(options.refreshSeconds)],
         ['styles.css', readHtmlSourceFile(options.stylesPath)],
         ['report.json', escapeScriptJson(htmlReport)],
         ['report.js', readHtmlSourceFile(REPORT_SCRIPT_PATH)],
@@ -48,6 +47,11 @@ function applyHtmlMetadata(report, options) {
         metadata: {
             ...report.metadata,
             datetime_format: options.datetimeFormat,
+            refresh_seconds:
+                Number.isFinite(options.refreshSeconds) &&
+                options.refreshSeconds >= 1
+                    ? Math.round(options.refreshSeconds)
+                    : undefined,
         },
     };
 }
@@ -91,24 +95,6 @@ function replaceTemplateStubLine(line, replacements) {
     }
 
     return line;
-}
-
-/**
- * Renders a browser refresh script when interval HTML output requests it.
- *
- * @param {number | undefined} refreshSeconds Page refresh delay in seconds.
- * @returns {string} Script markup or an empty string.
- */
-function renderRefreshScript(refreshSeconds) {
-    if (!Number.isFinite(refreshSeconds) || refreshSeconds < 1) {
-        return '';
-    }
-
-    return `<script>
-    window.setTimeout(() => {
-      window.location.reload();
-    }, ${Math.round(refreshSeconds)} * 1000);
-  </script>`;
 }
 
 /**
