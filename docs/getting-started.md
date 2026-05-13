@@ -14,24 +14,14 @@ The direct CLI entry point uses only Node.js built-in modules.
 
 ## Configuration
 
-The command creates `.env` from `.env.example` when `.env` is not present. Set local folder preferences in `.env`:
+The command creates `.env` from `.env.example` when `.env` is not present. The main settings are:
 
-```bash
-DATA_PATH=/tmp/codex-usage
-DATA_PATH_WINDOWS_DEFAULT=C:\Temp\codex-usage
-CODEX_HOME=
-STYLES=styles-dark-01.css
-DATETIME_FORMAT=MMM D, h:mm AP
-```
+- `DATA_PATH` for app-managed output and history files.
+- `CODEX_HOME` for the Codex session folder to scan.
+- `STYLES` for the HTML report stylesheet.
+- `DATETIME_FORMAT` for HTML report date and time labels.
 
-Output and history filenames use `DATA_PATH` when no folder path is included. The configured `DATA_PATH` folder is created when the command starts. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH` so the default data folder is `C:\Temp\codex-usage`. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. HTML reports use `STYLES` to select a CSS file. Use `--data-path`, `--codex-home`, or `--styles` to override these settings for a single run. The `.env` file also supports `DATETIME_FORMAT`, see `docs/datetime.md`.
-
-Windows drive paths can be used in `.env`. Quote paths that contain spaces:
-
-```bash
-DATA_PATH="C:\Users\example\Codex Usage"
-CODEX_HOME="C:\Users\example"
-```
+Use `--data-path`, `--codex-home`, or `--styles` to override local settings for a single run. See [cli-reference.md](./cli-reference.md) for defaults, path rules, and validation. See [datetime.md](./datetime.md) for date and time tokens.
 
 ## First Run
 

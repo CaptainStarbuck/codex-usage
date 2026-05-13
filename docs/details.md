@@ -10,11 +10,7 @@ Token consumption is read from JSONL records where `type` is `event_msg` and `pa
 
 ## Quota Snapshots
 
-Account quota information is read from non-null `payload.rate_limits` objects on `token_count` events. The parser attaches the event timestamp, source JSONL file, and session id derived from the rollout filename to each snapshot. The report displays the latest snapshot inside the selected window, or the latest earlier snapshot found in the scanned files.
-
-The quota report normalizes primary and secondary windows with `remaining_percent = 100 - used_percent`, clamped to `0` through `100`. A `300` minute window is labeled `5h limit`, and a `10080` minute window is labeled `7d limit`. Other windows are labeled `Primary limit` or `Secondary limit`. `resets_at` is kept as a Unix timestamp in seconds and also rendered as a local display string.
-
-Credits are displayed when present in `payload.rate_limits.credits`. Unlimited credits are shown as `Credits: unlimited`; otherwise a provided balance is rounded for display.
+Account quota information is read from non-null `payload.rate_limits` objects on `token_count` events. The parser attaches source context to each snapshot so the report can display the latest relevant quota state.
 
 ## Model Metadata
 
@@ -22,37 +18,15 @@ The parser reads `turn_context` records for `model` and `effort`. If a session f
 
 ## Totals
 
-The structured report keeps Codex-provided raw totals separate from derived aggregate display values. It sums each raw token column independently:
-
-- `input_tokens`
-- `cached_input_tokens`
-- `output_tokens`
-- `reasoning_output_tokens`
-- `raw_total_tokens`
-
-The report also computes derived metrics:
-
-- `observed_token_volume = input_tokens + output_tokens`
-- `effective_input_tokens = input_tokens - cached_input_tokens`
-- `visible_output_tokens = output_tokens - reasoning_output_tokens`
-- `cache_hit_rate = cached_input_tokens / input_tokens`
-- `reasoning_output_rate = reasoning_output_tokens / output_tokens`
-
-Rate calculations use zero when the denominator is zero or unavailable.
+The structured report keeps Codex-provided raw token totals separate from derived display values. Derived totals cover observed token volume, effective input, visible output, cache hit rate, and reasoning output rate. See [analytics-report.md](./analytics-report.md) for field definitions.
 
 ## Insights
 
-Insights include no-event windows, unavailable quota data, stale quota snapshots, multiple active sessions, unknown model metadata, unknown intelligence metadata, low cache hit rate for large input events, events over 100k observed token volume, model or intelligence changes inside a session, and ignored duplicate token count events.
+Insights are report annotations that call attention to missing data, stale quota data, active session patterns, unknown metadata, large events, cache behavior, metadata changes inside a session, and ignored duplicate token count events. See [analytics-report.md](./analytics-report.md) for the current insight list.
 
 ## Output Formats
 
-The command supports `--format text|json|html`. The default `text` format preserves the fixed-width event table and includes a corrected summary section. The `json` format emits the structured report object. The `html` format emits a standalone static browser dashboard and can be written with `--out`. Filename-only output values are written under `DATA_PATH`; output values with a folder path are used directly.
-
-The browser dashboard includes quota cards, summary cards, a stacked SVG timeline, warnings and notices, top sessions, top events, model-level summaries, collapsible event details, and a session path reference card. HTML report styling is read from the configured CSS file. Filename-only style values are read from `src/html`; values with a folder path are used directly.
-
-The By Model table groups event rows by model and intelligence level. Each primary row summarizes token totals for one model and level, using a Model value such as `gpt-5.5/low`. Rows are sorted by ascending model name and then by intelligence level in this order: `low`, `medium`, `high`, `xhigh`. Expanding a row shows a nested event table for that model and level without model or intelligence level columns. Expanded By Model rows are stored in browser `localStorage`, scoped to the report file path, Codex home, and report window length.
-
-Session IDs in HTML table cells display as the first hash section after the rollout filename timestamp. The Events table stores its expanded detail rows and active sort order in browser `localStorage`, scoped to the report file path, Codex home, and report window length. This lets browser refreshes keep expanded rows open when the same event row is present in the regenerated report.
+The command supports `--format text|json|html`. Text output is intended for terminal review, JSON output emits the structured report object, and HTML output emits a standalone static browser dashboard. The report includes the selected window, quota status, token totals, insights, session summaries, model summaries, event rows, and optional session path references depending on the renderer. See [analytics-report.md](./analytics-report.md) for report model fields, derived metrics, HTML dashboard behavior, sorting, expansion state, and renderer-specific details.
 
 ## Interval Mode
 
