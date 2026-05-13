@@ -50,6 +50,24 @@ const modelGroupsTableState = readModelGroupsTableState();
 let refreshTimer = undefined;
 let refreshEnabled = false;
 
+/**
+ * @typedef {object} TimelineSegment
+ * @property {string} field Bucket field to render as a stacked segment.
+ * @property {string} color Segment fill color.
+ * @property {string} legendColor Legend marker color.
+ * @property {string} label Legend label.
+ */
+
+/**
+ * @typedef {object} TimelineOptions
+ * @property {string} elementId Timeline container element id.
+ * @property {string} emptyMessage Message shown when no rows are available.
+ * @property {string} invalidTimestampMessage Message shown when rows have no valid timestamps.
+ * @property {string} ariaLabel SVG accessibility label.
+ * @property {TimelineSegment[]} segments Ordered stacked token segments.
+ * @property {string | undefined} scaleField Bucket field used for the vertical scale.
+ */
+
 function integer(value) {
     return Math.round(Number(value || 0)).toLocaleString('en-US');
 }
@@ -540,23 +558,100 @@ function renderInsights() {
         .join('');
 } */
 
+/**
+ * Renders the main token usage timeline with the original mixed token scale.
+ *
+ * @returns {void}
+ */
 function renderTimeline() {
-    const node = document.getElementById('timeline');
+    renderTokenTimeline({
+        elementId: 'timeline',
+        emptyMessage: 'No events found for the timeline.',
+        invalidTimestampMessage: 'No valid timestamps found for the timeline.',
+        ariaLabel: 'Token usage timeline',
+        segments: [
+            {
+                field: 'cached_input_tokens',
+                color: '#6ad1c9',
+                legendColor: 'var(--cached)',
+                label: 'Cached input',
+            },
+            {
+                field: 'effective_input_tokens',
+                color: '#87a8ff',
+                legendColor: 'var(--effective)',
+                label: 'Effective input',
+            },
+            {
+                field: 'output_tokens',
+                color: '#f3b563',
+                legendColor: 'var(--output)',
+                label: 'Output',
+            },
+            {
+                field: 'reasoning_output_tokens',
+                color: '#c58cff',
+                legendColor: 'var(--reasoning)',
+                label: 'Reasoning output',
+            },
+        ],
+        scaleField: 'observed_token_volume',
+    });
+}
+
+/**
+ * Renders a focused output token timeline without input-token segments.
+ *
+ * @returns {void}
+ */
+function renderOutputTokenTimeline() {
+    renderTokenTimeline({
+        elementId: 'output-token-timeline',
+        emptyMessage: 'No events found for the output token timeline.',
+        invalidTimestampMessage:
+            'No valid timestamps found for the output token timeline.',
+        ariaLabel: 'Output token usage timeline',
+        segments: [
+            {
+                field: 'output_tokens',
+                color: '#f3b563',
+                legendColor: 'var(--output)',
+                label: 'Output Tokens',
+            },
+            {
+                field: 'reasoning_output_tokens',
+                color: '#c58cff',
+                legendColor: 'var(--reasoning)',
+                label: 'Reasoning Output Tokens',
+            },
+        ],
+        scaleField: undefined,
+    });
+}
+
+/**
+ * Renders a stacked SVG token timeline for a selected set of token fields.
+ *
+ * @param {TimelineOptions} options Timeline rendering options.
+ * @returns {void}
+ */
+function renderTokenTimeline(options) {
+    const node = document.getElementById(options.elementId);
     const rows = report.rows || [];
     if (rows.length === 0) {
         node.innerHTML =
-            '<div class="empty">No events found for the timeline.</div>';
+            '<div class="empty">' + options.emptyMessage + '</div>';
         return;
     }
 
     const buckets = buildTimelineBuckets(rows);
     if (buckets.length === 0) {
         node.innerHTML =
-            '<div class="empty">No valid timestamps found for the timeline.</div>';
+            '<div class="empty">' + options.invalidTimestampMessage + '</div>';
         return;
     }
     const maxVolume = Math.max(
-        ...buckets.map((bucket) => bucket.observed_token_volume),
+        ...buckets.map((bucket) => scaleVolume(bucket, options)),
         1
     );
     const width = Math.max(920, buckets.length * 18 + 80);
@@ -565,27 +660,16 @@ function renderTimeline() {
     const chartHeight = 150;
     const barGap = 3;
     const barWidth = Math.max(4, (width - 80) / buckets.length - barGap);
-    const colors = {
-        cached_input_tokens: '#6ad1c9',
-        effective_input_tokens: '#87a8ff',
-        output_tokens: '#f3b563',
-        reasoning_output_tokens: '#c58cff',
-    };
     const rects = buckets
         .map((bucket, index) => {
             const x = 50 + index * (barWidth + barGap);
             let y = chartTop + chartHeight;
-            const segments = [
-                'cached_input_tokens',
-                'effective_input_tokens',
-                'output_tokens',
-                'reasoning_output_tokens',
-            ];
-            return segments
-                .map((field) => {
+            return options.segments
+                .map((segment) => {
                     const segmentHeight = Math.max(
                         0,
-                        (Number(bucket[field] || 0) / maxVolume) * chartHeight
+                        (Number(bucket[segment.field] || 0) / maxVolume) *
+                            chartHeight
                     );
                     y -= segmentHeight;
                     return (
@@ -598,7 +682,7 @@ function renderTimeline() {
                         '" height="' +
                         segmentHeight.toFixed(2) +
                         '" fill="' +
-                        colors[field] +
+                        segment.color +
                         '"><title>' +
                         html(timelineTitle(bucket)) +
                         '</title></rect>'
@@ -613,7 +697,9 @@ function renderTimeline() {
         width +
         ' ' +
         height +
-        '" role="img" aria-label="Token usage timeline"><line x1="45" y1="' +
+        '" role="img" aria-label="' +
+        html(options.ariaLabel) +
+        '"><line x1="45" y1="' +
         (chartTop + chartHeight) +
         '" x2="' +
         (width - 20) +
@@ -627,7 +713,36 @@ function renderTimeline() {
         (width - 190) +
         '" y="195" fill="#9ba8b8" font-size="12">' +
         html(buckets.at(-1).label) +
-        '</text></svg><div class="legend"><span style="--legend-color: var(--cached)">Cached input</span><span style="--legend-color: var(--effective)">Effective input</span><span style="--legend-color: var(--output)">Output</span><span style="--legend-color: var(--reasoning)">Reasoning output</span></div>';
+        '</text></svg><div class="legend">' +
+        options.segments
+            .map(
+                (segment) =>
+                    '<span style="--legend-color: ' +
+                    segment.legendColor +
+                    '">' +
+                    html(segment.label) +
+                    '</span>'
+            )
+            .join('') +
+        '</div>';
+}
+
+/**
+ * Reads the value used for a timeline bucket's vertical scale.
+ *
+ * @param {object} bucket Timeline bucket.
+ * @param {TimelineOptions} options Timeline rendering options.
+ * @returns {number} Bucket scale value.
+ */
+function scaleVolume(bucket, options) {
+    if (options.scaleField) {
+        return Number(bucket[options.scaleField] || 0);
+    }
+
+    return options.segments.reduce(
+        (sum, segment) => sum + Number(bucket[segment.field] || 0),
+        0
+    );
 }
 
 /**
@@ -710,6 +825,12 @@ function buildTimelineBuckets(rows) {
     );
 }
 
+/**
+ * Builds the browser tooltip for a timeline bucket.
+ *
+ * @param {object} bucket Timeline bucket.
+ * @returns {string} Tooltip text.
+ */
 function timelineTitle(bucket) {
     return [
         bucket.label,
@@ -1478,6 +1599,7 @@ renderReportControls();
 renderQuota();
 renderSummary();
 renderTimeline();
+renderOutputTokenTimeline();
 renderInsights();
 // Top Sessions and Top Events are temporarily disabled.
 // renderTopSessions();

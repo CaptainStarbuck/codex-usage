@@ -42,9 +42,11 @@ The report uses raw numeric fields in structured data and leaves rounding to ren
 
 ## HTML Report
 
-The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains an optional refresh control panel, quota cards, summary cards, a stacked token timeline, model-level summaries, a sortable event table, a session path reference card, and warnings and notices at the bottom.
+The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains an optional refresh control panel, quota cards, summary cards, stacked token timelines, model-level summaries, a sortable event table, a session path reference card, and warnings and notices at the bottom.
 
 The timeline uses inline SVG and stacks cached input, effective input, output, and reasoning output tokens. Browser titles on timeline bars include timestamp or bucket, session id, model, intelligence level, token values, and cache hit rate.
+
+The Output Token Timeline uses the same bucket timing as the main timeline, but only stacks output tokens and reasoning output tokens. Its vertical scale is based on output-token values instead of mixed input and output volume.
 
 The By Model table groups event rows by model and intelligence level. Each summary row displays the model and level together in the Model column, sorted by model name and then `low`, `medium`, `high`, and `xhigh`. Collapsed summary rows and expanded detail rows use the same token column order and labels as the Events table, starting with Input Tokens. Table headers break multi-word labels onto separate lines. Expanding a summary row shows the events for that model and level without repeating model or level columns. Expanded By Model rows include a Session column with compact `hash/turn` values. Expanded By Model rows are stored in browser `localStorage`, scoped to the report file path, Codex home, and report window length.
 

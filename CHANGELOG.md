@@ -10,6 +10,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 - Summary, collapsed By Model, and expanded By Model token displays now use the same order and labels as the Events table.
 - HTML report token displays now place Cache Hit Rate after Effective Input Tokens and Reasoning Output Tokens after Output Tokens, and table headers use line breaks for multi-word labels.
 - Summary cards are grouped into separate Input, Output, and Totals rows.
+- HTML reports now include an Output Token Timeline that charts output and reasoning output tokens on their own scale.
 
 ### 2026-05-13 / v1.1.2
 

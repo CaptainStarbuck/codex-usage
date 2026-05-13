@@ -10,6 +10,7 @@ These are details about other changes, and trivial details that don't warrant a 
 - Added shared HTML token column ordering and label overrides for Summary, By Model, and Events displays.
 - Added table-only header label line breaks and narrower token column widths across the default, light, and dark HTML stylesheets.
 - Added Summary grid break markers after the Input and Output card groups.
+- Added a reusable HTML token timeline renderer and a second output-only timeline card.
 
 ### 2026-05-13 / v1.1.2
 
