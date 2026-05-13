@@ -712,7 +712,7 @@ function timelineTitle(bucket) {
                     ? bucket.cached_input_tokens / bucket.input_tokens
                     : 0
             ),
-    ].join('\\n');
+    ].join('\n');
 }
 
 /**

@@ -6,6 +6,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 ### 2026-05-13 / v1.1.3
 
 - HTML reports generated with `--force-refresh` now include a Refresh control for pausing and resuming browser auto-refresh.
+- Timeline chart mouseover text now uses real line breaks instead of showing literal `\n` text.
 
 ### 2026-05-13 / v1.1.2
 
