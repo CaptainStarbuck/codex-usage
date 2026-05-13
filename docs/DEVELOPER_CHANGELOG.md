@@ -2,6 +2,16 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
+### 2026-05-13 / v1.1.1
+
+#### Changed
+
+- Changed the HTML Models section to render as By Model, grouping browser-side report rows by model and intelligence level.
+- Added nested event tables under each By Model group and omitted repeated model and intelligence columns from the nested rows.
+- Added nested table styling across the default, light, and dark HTML stylesheets.
+- Added browser localStorage persistence for By Model expanded row state.
+- Updated analytics and implementation docs for the By Model report layout.
+
 ### 2026-05-12 / v1.1.1
 
 #### Enhanced

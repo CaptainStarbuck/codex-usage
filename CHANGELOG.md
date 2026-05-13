@@ -3,6 +3,10 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+### 2026-05-13 / v1.1.2
+
+- The HTML Models section is labeled By Model and groups usage by model and intelligence level, with expandable event rows for each group.
+
 ### 2026-05-12 / v1.1.1
 
 - Dynamic HTML report styling, currently with two available files, one light and one dark.

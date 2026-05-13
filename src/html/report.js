@@ -29,6 +29,30 @@ const eventColumns = [
     'output_tokens',
     'reasoning_output_tokens',
 ];
+const modelGroupColumns = [
+    'model',
+    'event_count',
+    'sessions',
+    'observed_token_volume',
+    'effective_input_tokens',
+    'cached_input_tokens',
+    'cache_hit_rate',
+    'output_tokens',
+    'reasoning_output_tokens',
+    'raw_total_tokens',
+];
+const modelGroupEventColumns = [
+    'timestamp',
+    'session_id',
+    'turn_index',
+    'seconds_since_previous',
+    'observed_token_volume',
+    'effective_input_tokens',
+    'cached_input_tokens',
+    'cache_hit_rate',
+    'output_tokens',
+    'reasoning_output_tokens',
+];
 const detailColumns = [
     'input_tokens',
     'visible_output_tokens',
@@ -38,6 +62,7 @@ const detailColumns = [
 ];
 const datetimeFormat = report.metadata?.datetime_format || 'MMM D, h:mm AP';
 const eventTableState = readEventTableState();
+const modelGroupsTableState = readModelGroupsTableState();
 
 function integer(value) {
     return Math.round(Number(value || 0)).toLocaleString('en-US');
@@ -590,6 +615,61 @@ function eventTableStateKey() {
 }
 
 /**
+ * Reads persisted By Model expansion state for the current report file.
+ *
+ * @returns {{ expanded: string[] }} Table state.
+ */
+function readModelGroupsTableState() {
+    try {
+        const rawState = window.localStorage.getItem(
+            modelGroupsTableStateKey()
+        );
+        const state = JSON.parse(rawState || '{}');
+        return {
+            expanded: Array.isArray(state.expanded)
+                ? state.expanded.filter((key) => typeof key === 'string')
+                : [],
+        };
+    } catch {
+        return {
+            expanded: [],
+        };
+    }
+}
+
+/**
+ * Persists By Model expansion state when browser storage is available.
+ *
+ * @param {{ expanded: string[] }} state Table state.
+ * @returns {void}
+ */
+function writeModelGroupsTableState(state) {
+    try {
+        window.localStorage.setItem(
+            modelGroupsTableStateKey(),
+            JSON.stringify(state)
+        );
+    } catch {
+        // Private browsing and file restrictions can disable storage.
+    }
+}
+
+/**
+ * Builds a storage key scoped to the report file and source window.
+ *
+ * @returns {string} Browser storage key.
+ */
+function modelGroupsTableStateKey() {
+    return [
+        'codex-usage',
+        'model-groups-table-state',
+        window.location.pathname,
+        report.metadata.codex_home || '',
+        report.window.minutes || '',
+    ].join(':');
+}
+
+/**
  * Builds a stable identity for an event row across generated page reloads.
  *
  * @param {object} row Report event row.
@@ -608,12 +688,27 @@ function eventRowKey(row) {
 }
 
 /**
+ * Builds a stable identity for a By Model group across generated page reloads.
+ *
+ * @param {object} row Model group row.
+ * @returns {string} Model group identity.
+ */
+function modelGroupRowKey(row) {
+    return [row.raw_model, row.intelligence_level]
+        .map((value) => String(value ?? 'unknown'))
+        .join('|');
+}
+
+/**
  * Converts report field keys to user-facing table labels.
  *
  * @param {string} column Report field key.
  * @returns {string} Common-cased label using the same words as the field key.
  */
 function columnLabel(column) {
+    if (column === 'model') {
+        return 'Model';
+    }
     return column
         .split('_')
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -727,6 +822,278 @@ function renderTable(id, rows, columns, options = {}) {
 }
 
 /**
+ * Renders model and intelligence groups with event rows nested under each group.
+ *
+ * @param {string} id Table element id.
+ * @param {object[]} rows Normalized event rows.
+ * @returns {void}
+ */
+function renderModelGroupsTable(id, rows) {
+    const table = document.getElementById(id);
+    const groups = buildModelGroups(rows);
+
+    if (groups.length === 0) {
+        table.innerHTML = '<tbody><tr><td>No rows found.</td></tr></tbody>';
+        return;
+    }
+
+    const expandedRows = new Set(modelGroupsTableState.expanded);
+    const head =
+        '<thead><tr><th></th>' +
+        modelGroupColumns
+            .map((column) => '<th>' + html(columnLabel(column)) + '</th>')
+            .join('') +
+        '</tr></thead>';
+    const body =
+        '<tbody>' +
+        groups
+            .map((group, index) =>
+                renderModelGroupRow(
+                    group,
+                    index,
+                    expandedRows.has(modelGroupRowKey(group))
+                )
+            )
+            .join('') +
+        '</tbody>';
+
+    table.innerHTML = head + body;
+    table.querySelectorAll('.model-group-toggle').forEach((button) => {
+        button.addEventListener('click', () => {
+            const detailRow = table.querySelector(
+                '[data-detail-row="' + button.dataset.detail + '"]'
+            );
+            const expanded = button.getAttribute('aria-expanded') === 'true';
+            const groupKey = button.dataset.groupKey || '';
+
+            button.setAttribute('aria-expanded', String(!expanded));
+            button.textContent = expanded ? '+' : '-';
+            detailRow.hidden = expanded;
+            if (expanded) {
+                expandedRows.delete(groupKey);
+            } else {
+                expandedRows.add(groupKey);
+            }
+            modelGroupsTableState.expanded = [...expandedRows];
+            writeModelGroupsTableState(modelGroupsTableState);
+        });
+    });
+}
+
+/**
+ * Builds sorted summary rows for each model and intelligence level.
+ *
+ * @param {object[]} rows Normalized event rows.
+ * @returns {object[]} Model group summary rows.
+ */
+function buildModelGroups(rows) {
+    /** @type {Map<string, object[]>} */
+    const groupedRows = new Map();
+
+    for (const row of rows) {
+        const model = String(row.model ?? 'unknown');
+        const level = String(row.intelligence_level ?? 'unknown');
+        const key = [model, level].join('|');
+        const groupRows = groupedRows.get(key) ?? [];
+        groupRows.push(row);
+        groupedRows.set(key, groupRows);
+    }
+
+    return [...groupedRows.values()]
+        .map(summarizeModelGroup)
+        .sort(compareModelGroups);
+}
+
+/**
+ * Summarizes all events for one model and intelligence level.
+ *
+ * @param {object[]} rows Rows for one model and intelligence level.
+ * @returns {object} Model group summary row.
+ */
+function summarizeModelGroup(rows) {
+    const sortedRows = [...rows].sort((first, second) =>
+        first.timestamp.localeCompare(second.timestamp)
+    );
+    const firstRow = sortedRows[0] ?? {};
+    const totals = sumRows(sortedRows);
+
+    return {
+        raw_model: String(firstRow.model ?? 'unknown'),
+        intelligence_level: String(firstRow.intelligence_level ?? 'unknown'),
+        model:
+            String(firstRow.model ?? 'unknown') +
+            '/' +
+            String(firstRow.intelligence_level ?? 'unknown'),
+        event_count: sortedRows.length,
+        sessions: uniqueStrings(sortedRows, 'session_id'),
+        events: sortedRows,
+        ...totals,
+    };
+}
+
+/**
+ * Sums token and derived token fields for a group of rows.
+ *
+ * @param {object[]} rows Rows to summarize.
+ * @returns {Record<string, number>} Summed model group totals.
+ */
+function sumRows(rows) {
+    /** @type {Record<string, number>} */
+    const totals = {
+        input_tokens: 0,
+        cached_input_tokens: 0,
+        output_tokens: 0,
+        reasoning_output_tokens: 0,
+        raw_total_tokens: 0,
+        observed_token_volume: 0,
+        effective_input_tokens: 0,
+        visible_output_tokens: 0,
+    };
+
+    for (const row of rows) {
+        for (const field of Object.keys(totals)) {
+            totals[field] += Number(row[field] ?? 0);
+        }
+    }
+
+    totals.cache_hit_rate = totals.input_tokens
+        ? totals.cached_input_tokens / totals.input_tokens
+        : 0;
+    totals.reasoning_output_rate = totals.output_tokens
+        ? totals.reasoning_output_tokens / totals.output_tokens
+        : 0;
+
+    return totals;
+}
+
+/**
+ * Reads unique string values for a row field.
+ *
+ * @param {object[]} rows Rows to inspect.
+ * @param {string} field Field name.
+ * @returns {string[]} Unique values in sorted order.
+ */
+function uniqueStrings(rows, field) {
+    return [
+        ...new Set(rows.map((row) => String(row[field] ?? 'unknown'))),
+    ].sort();
+}
+
+/**
+ * Sorts model groups by model name and then known intelligence level order.
+ *
+ * @param {object} left First model group.
+ * @param {object} right Second model group.
+ * @returns {number} Sort order.
+ */
+function compareModelGroups(left, right) {
+    return (
+        String(left.raw_model ?? '').localeCompare(
+            String(right.raw_model ?? '')
+        ) ||
+        intelligenceLevelOrder(left.intelligence_level) -
+            intelligenceLevelOrder(right.intelligence_level) ||
+        String(left.intelligence_level ?? '').localeCompare(
+            String(right.intelligence_level ?? '')
+        )
+    );
+}
+
+/**
+ * Gets the requested sort order for known intelligence levels.
+ *
+ * @param {unknown} level Intelligence level value.
+ * @returns {number} Sort order index.
+ */
+function intelligenceLevelOrder(level) {
+    const levels = ['low', 'medium', 'high', 'xhigh'];
+    const index = levels.indexOf(String(level ?? ''));
+
+    return index === -1 ? levels.length : index;
+}
+
+/**
+ * Renders one expandable model group summary row.
+ *
+ * @param {object} group Model group summary row.
+ * @param {number} index Row index.
+ * @param {boolean} expanded Whether the row should render expanded.
+ * @returns {string} Table row markup.
+ */
+function renderModelGroupRow(group, index, expanded = false) {
+    const detailId = 'model-group-' + index;
+    const cells = modelGroupColumns
+        .map(
+            (column) =>
+                '<td class="' +
+                (numberFields.has(column) ? 'number' : '') +
+                '">' +
+                html(display(column, group[column])) +
+                '</td>'
+        )
+        .join('');
+
+    return (
+        '<tr><td><button class="event-toggle model-group-toggle" type="button" aria-expanded="' +
+        String(expanded) +
+        '" data-detail="' +
+        detailId +
+        '" data-group-key="' +
+        html(modelGroupRowKey(group)) +
+        '">' +
+        (expanded ? '-' : '+') +
+        '</button></td>' +
+        cells +
+        '</tr><tr class="event-detail-row" data-detail-row="' +
+        detailId +
+        '"' +
+        (expanded ? '' : ' hidden') +
+        '><td colspan="' +
+        (modelGroupColumns.length + 1) +
+        '">' +
+        renderModelGroupEventsTable(group.events || []) +
+        '</td></tr>'
+    );
+}
+
+/**
+ * Renders the events nested under a model group.
+ *
+ * @param {object[]} rows Event rows for one model and intelligence level.
+ * @returns {string} Nested event table markup.
+ */
+function renderModelGroupEventsTable(rows) {
+    const head =
+        '<thead><tr>' +
+        modelGroupEventColumns
+            .map((column) => '<th>' + html(columnLabel(column)) + '</th>')
+            .join('') +
+        '</tr></thead>';
+    const body =
+        '<tbody>' +
+        rows
+            .map(
+                (row) =>
+                    '<tr>' +
+                    modelGroupEventColumns
+                        .map(
+                            (column) =>
+                                '<td class="' +
+                                (numberFields.has(column) ? 'number' : '') +
+                                '">' +
+                                html(display(column, row[column])) +
+                                '</td>'
+                        )
+                        .join('') +
+                    '</tr>'
+            )
+            .join('') +
+        '</tbody>';
+
+    return '<table class="nested-events-table">' + head + body + '</table>';
+}
+
+/**
  * Renders a table row and optional event detail row.
  *
  * @param {object} row Report row.
@@ -808,19 +1175,7 @@ renderTimeline();
 renderInsights();
 renderTopSessions();
 renderTopEvents();
-renderTable('models-table', report.models || [], [
-    'model',
-    'event_count',
-    'sessions',
-    'intelligence_levels',
-    'observed_token_volume',
-    'effective_input_tokens',
-    'cached_input_tokens',
-    'cache_hit_rate',
-    'output_tokens',
-    'reasoning_output_tokens',
-    'raw_total_tokens',
-]);
+renderModelGroupsTable('models-table', report.rows || []);
 renderTable('events-table', report.rows || [], eventColumns, {
     details: true,
 });

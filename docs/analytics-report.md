@@ -42,9 +42,11 @@ The report uses raw numeric fields in structured data and leaves rounding to ren
 
 ## HTML Report
 
-The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains quota cards, summary cards, a stacked token timeline, warnings and notices, top sessions, top events, model summaries, and a sortable event table.
+The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains quota cards, summary cards, a stacked token timeline, warnings and notices, top sessions, top events, model-level summaries, and a sortable event table.
 
 The timeline uses inline SVG and stacks cached input, effective input, output, and reasoning output tokens. Browser titles on timeline bars include timestamp or bucket, session id, model, intelligence level, token values, and cache hit rate.
+
+The By Model table groups event rows by model and intelligence level. Each summary row displays the model and level together in the Model column, sorted by model name and then `low`, `medium`, `high`, and `xhigh`. Expanding a summary row shows the events for that model and level without repeating model or level columns. Expanded By Model rows are stored in browser `localStorage`, scoped to the report file path, Codex home, and report window length.
 
 The event table keeps the default visible columns focused on timestamp, session metadata, observed token volume, effective input tokens, cached input tokens, cache hit rate, output tokens, and reasoning output tokens. Raw totals, visible output, reasoning rate, input tokens, and source file path are available in expandable detail rows.
 
