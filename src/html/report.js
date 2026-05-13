@@ -128,6 +128,15 @@ function display(field, value) {
     if (field === 'timestamp' || field.endsWith('_timestamp')) {
         return datetime(value);
     }
+    if (field === 'session_id') {
+        return sessionReference(value);
+    }
+    if (field === 'sessions' && Array.isArray(value)) {
+        return value.map(sessionReference).join(', ');
+    }
+    if (field === 'file') {
+        return sessionFileReference(value);
+    }
     if (field.endsWith('_rate')) {
         return percent(value);
     }
@@ -138,6 +147,37 @@ function display(field, value) {
         return integer(value);
     }
     return String(value ?? '');
+}
+
+/**
+ * Gets the compact session hash used in the HTML report display.
+ *
+ * @param {unknown} value Raw session id from a rollout filename.
+ * @returns {string} Short session reference when available.
+ */
+function sessionReference(value) {
+    const sessionId = String(value ?? '');
+    const match = /^rollout-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}-([^-]+)/u.exec(
+        sessionId
+    );
+
+    return match?.[1] ?? sessionId;
+}
+
+/**
+ * Gets the compact session hash from a session file path.
+ *
+ * @param {unknown} value Raw source file path.
+ * @returns {string} Short session file reference when available.
+ */
+function sessionFileReference(value) {
+    const filePath = String(value ?? '');
+    const fileName = filePath
+        .split(/[\\/]/u)
+        .pop()
+        ?.replace(/\.jsonl$/u, '');
+
+    return sessionReference(fileName || filePath);
 }
 
 function html(value) {
@@ -293,7 +333,7 @@ function renderTopSessions() {
         .map(
             (session) =>
                 '<article class="list-item"><header><strong>' +
-                html(session.session_id) +
+                html(sessionReference(session.session_id)) +
                 '</strong><span class="value">' +
                 integer(session.observed_token_volume) +
                 '</span></header><div class="stats"><span>Events<b>' +
@@ -344,7 +384,7 @@ function renderTopEvents() {
                 '</strong><span class="value">' +
                 integer(row.observed_token_volume) +
                 '</span></header><div class="stats"><span class="stat-wide">Session<b>' +
-                html(row.session_id) +
+                html(sessionReference(row.session_id)) +
                 '</b></span><span>Model<b>' +
                 html(row.model) +
                 '</b></span><span>Intelligence<b>' +
@@ -537,7 +577,7 @@ function buildTimelineBuckets(rows) {
 function timelineTitle(bucket) {
     return [
         bucket.label,
-        'session: ' + bucket.session_id,
+        'session: ' + sessionReference(bucket.session_id),
         'model: ' + bucket.model,
         'intelligence: ' + bucket.intelligence_level,
         'observed: ' + integer(bucket.observed_token_volume),
@@ -708,6 +748,9 @@ function modelGroupRowKey(row) {
 function columnLabel(column) {
     if (column === 'model') {
         return 'Model';
+    }
+    if (column === 'session_id') {
+        return 'Session ID';
     }
     return column
         .split('_')
@@ -1160,6 +1203,58 @@ function compareValues(left, right) {
     return String(left ?? '').localeCompare(String(right ?? ''));
 }
 
+/**
+ * Renders the source session paths used by the current report.
+ *
+ * @returns {void}
+ */
+function renderSessionPaths() {
+    const node = document.getElementById('session-paths');
+    const paths = uniqueSessionPaths();
+
+    if (paths.length === 0) {
+        node.innerHTML =
+            '<div class="empty">No session paths found in this report window.</div>';
+        return;
+    }
+
+    node.innerHTML =
+        '<div class="session-path-list">' +
+        paths
+            .map(
+                (path) =>
+                    '<div><strong>' +
+                    html(sessionFileReference(path)) +
+                    '</strong><code>' +
+                    html(path) +
+                    '</code></div>'
+            )
+            .join('') +
+        '</div>';
+}
+
+/**
+ * Gets sorted unique session source file paths from sessions and rows.
+ *
+ * @returns {string[]} Unique session file paths.
+ */
+function uniqueSessionPaths() {
+    const paths = new Set();
+
+    for (const session of report.sessions || []) {
+        if (session.source_file) {
+            paths.add(String(session.source_file));
+        }
+    }
+    for (const row of report.rows || []) {
+        if (row.file) {
+            paths.add(String(row.file));
+        }
+    }
+
+    return [...paths].sort();
+}
+
 document.getElementById('window').textContent =
     datetime(report.window.cutoff) +
     ' to ' +
@@ -1179,3 +1274,4 @@ renderModelGroupsTable('models-table', report.rows || []);
 renderTable('events-table', report.rows || [], eventColumns, {
     details: true,
 });
+renderSessionPaths();

@@ -11,6 +11,7 @@ These are details about other changes, and trivial details that don't warrant a 
 - Added nested table styling across the default, light, and dark HTML stylesheets.
 - Added browser localStorage persistence for By Model expanded row state.
 - Updated analytics and implementation docs for the By Model report layout.
+- Added browser-side session reference formatting and a Session Paths card to keep full source file paths available in HTML reports.
 
 ### 2026-05-12 / v1.1.1
 

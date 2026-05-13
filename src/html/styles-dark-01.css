@@ -272,3 +272,27 @@ td.number {
 .nested-events-table th {
     position: static;
 }
+.session-paths {
+    padding: 12px;
+}
+.session-path-list {
+    display: grid;
+    gap: 8px;
+}
+.session-path-list div {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+.session-path-list strong {
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+.session-path-list code {
+    color: var(--muted);
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
