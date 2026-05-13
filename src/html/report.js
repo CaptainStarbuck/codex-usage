@@ -21,7 +21,6 @@ const eventColumns = [
     'turn_index',
     'seconds_since_previous',
     'model',
-    'intelligence_level',
     'observed_token_volume',
     'effective_input_tokens',
     'cached_input_tokens',
@@ -147,6 +146,29 @@ function display(field, value) {
         return integer(value);
     }
     return String(value ?? '');
+}
+
+/**
+ * Formats a report field value with row context for table cells.
+ *
+ * @param {object} row Report row.
+ * @param {string} field Report field key.
+ * @returns {string | number} Display-ready field value.
+ */
+function displayCell(row, field) {
+    if (
+        field === 'model' &&
+        !Object.hasOwn(row, 'raw_model') &&
+        Object.hasOwn(row, 'intelligence_level')
+    ) {
+        return (
+            String(row.model ?? 'unknown') +
+            '/' +
+            String(row.intelligence_level ?? 'unknown')
+        );
+    }
+
+    return display(field, row[field]);
 }
 
 /**
@@ -759,6 +781,57 @@ function columnLabel(column) {
 }
 
 /**
+ * Converts report field keys to safe label markup for table headers.
+ *
+ * @param {string} column Report field key.
+ * @returns {string} Escaped header label markup.
+ */
+function columnLabelHtml(column) {
+    if (column === 'turn_index') {
+        return 'Turn<br>Index';
+    }
+
+    return html(columnLabel(column));
+}
+
+/**
+ * Builds CSS class names for a table column.
+ *
+ * @param {string} column Report field key.
+ * @returns {string} Space-separated CSS classes.
+ */
+function columnClasses(column) {
+    return [
+        numberFields.has(column) ? 'number' : '',
+        'field-' + column.replace(/_/gu, '-'),
+    ]
+        .filter(Boolean)
+        .join(' ');
+}
+
+/**
+ * Renders fixed table column sizing hints for visible columns.
+ *
+ * @param {string[]} columns Visible columns.
+ * @param {boolean} [withToggle] Whether to include the expandable row control column.
+ * @returns {string} Table column group markup.
+ */
+function renderColumnGroup(columns, withToggle = false) {
+    const toggleColumn = withToggle ? '<col class="field-toggle-control">' : '';
+
+    return (
+        '<colgroup>' +
+        toggleColumn +
+        columns
+            .map(
+                (column) => '<col class="' + html(columnClasses(column)) + '">'
+            )
+            .join('') +
+        '</colgroup>'
+    );
+}
+
+/**
  * Renders a sortable table and restores Events detail expansion state.
  *
  * @param {string} id Table element id.
@@ -799,10 +872,12 @@ function renderTable(id, rows, columns, options = {}) {
             columns
                 .map(
                     (column) =>
-                        '<th data-column="' +
+                        '<th class="' +
+                        html(columnClasses(column)) +
+                        '" data-column="' +
                         html(column) +
                         '">' +
-                        html(columnLabel(column)) +
+                        columnLabelHtml(column) +
                         '</th>'
                 )
                 .join('') +
@@ -821,7 +896,8 @@ function renderTable(id, rows, columns, options = {}) {
                 )
                 .join('') +
             '</tbody>';
-        table.innerHTML = head + body;
+        table.innerHTML =
+            renderColumnGroup(columns, options.details) + head + body;
         table.querySelectorAll('th[data-column]').forEach((header) => {
             header.addEventListener('click', () => {
                 const column = header.dataset.column;
@@ -884,7 +960,14 @@ function renderModelGroupsTable(id, rows) {
     const head =
         '<thead><tr><th></th>' +
         modelGroupColumns
-            .map((column) => '<th>' + html(columnLabel(column)) + '</th>')
+            .map(
+                (column) =>
+                    '<th class="' +
+                    html(columnClasses(column)) +
+                    '">' +
+                    columnLabelHtml(column) +
+                    '</th>'
+            )
             .join('') +
         '</tr></thead>';
     const body =
@@ -900,7 +983,7 @@ function renderModelGroupsTable(id, rows) {
             .join('') +
         '</tbody>';
 
-    table.innerHTML = head + body;
+    table.innerHTML = renderColumnGroup(modelGroupColumns, true) + head + body;
     table.querySelectorAll('.model-group-toggle').forEach((button) => {
         button.addEventListener('click', () => {
             const detailRow = table.querySelector(
@@ -1069,9 +1152,9 @@ function renderModelGroupRow(group, index, expanded = false) {
         .map(
             (column) =>
                 '<td class="' +
-                (numberFields.has(column) ? 'number' : '') +
+                html(columnClasses(column)) +
                 '">' +
-                html(display(column, group[column])) +
+                html(displayCell(group, column)) +
                 '</td>'
         )
         .join('');
@@ -1109,7 +1192,14 @@ function renderModelGroupEventsTable(rows) {
     const head =
         '<thead><tr>' +
         modelGroupEventColumns
-            .map((column) => '<th>' + html(columnLabel(column)) + '</th>')
+            .map(
+                (column) =>
+                    '<th class="' +
+                    html(columnClasses(column)) +
+                    '">' +
+                    columnLabelHtml(column) +
+                    '</th>'
+            )
             .join('') +
         '</tr></thead>';
     const body =
@@ -1122,9 +1212,9 @@ function renderModelGroupEventsTable(rows) {
                         .map(
                             (column) =>
                                 '<td class="' +
-                                (numberFields.has(column) ? 'number' : '') +
+                                html(columnClasses(column)) +
                                 '">' +
-                                html(display(column, row[column])) +
+                                html(displayCell(row, column)) +
                                 '</td>'
                         )
                         .join('') +
@@ -1133,7 +1223,13 @@ function renderModelGroupEventsTable(rows) {
             .join('') +
         '</tbody>';
 
-    return '<table class="nested-events-table">' + head + body + '</table>';
+    return (
+        '<table class="nested-events-table">' +
+        renderColumnGroup(modelGroupEventColumns) +
+        head +
+        body +
+        '</table>'
+    );
 }
 
 /**
@@ -1151,9 +1247,9 @@ function renderTableRow(row, columns, index, options, expanded = false) {
         .map(
             (column) =>
                 '<td class="' +
-                (numberFields.has(column) ? 'number' : '') +
+                html(columnClasses(column)) +
                 '">' +
-                html(display(column, row[column])) +
+                html(displayCell(row, column)) +
                 '</td>'
         )
         .join('');

@@ -235,9 +235,33 @@ th {
     top: 0;
     z-index: 1;
 }
+th.number,
 td.number {
     text-align: right;
     font-variant-numeric: tabular-nums;
+}
+th.field-turn-index,
+td.field-turn-index {
+    white-space: normal;
+    overflow-wrap: normal;
+}
+col.field-toggle-control {
+    width: 44px;
+}
+col.field-turn-index {
+    width: 64px;
+}
+col.field-seconds-since-previous {
+    width: 84px;
+}
+col.field-timestamp {
+    width: 140px;
+}
+col.field-session-id {
+    width: 110px;
+}
+col.field-model {
+    width: 150px;
 }
 .event-toggle {
     width: 28px;

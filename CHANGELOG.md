@@ -8,6 +8,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 - The HTML Models section is labeled By Model and groups usage by model and intelligence level, with expandable event rows for each group.
 - Added `src/utils/jsonl2json.js` as a convenience utility for converting Codex session JSONL files to formatted JSON. See `docs/jsonl2json.md`.
 - HTML report session columns display compact session hash references, and full session file paths appear in a Session Paths card.
+- HTML report numeric table headers align with numeric values, the Turn Index column is compact, and Events table model values include intelligence level.
 
 ### 2026-05-12 / v1.1.1
 
