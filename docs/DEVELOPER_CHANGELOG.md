@@ -2,7 +2,7 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
-### 2026-05-13 / v1.1.1
+### 2026-05-13 / v1.1.2
 
 #### Changed
 

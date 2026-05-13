@@ -2,7 +2,7 @@
 
 **This is the only AGENTS.md file in the project, do not look for others.**
 
-See README.md for information about this software called Explorable Links.
+See README.md for information about this software called Codex Usage.
 
 # Codex Task Management
 
