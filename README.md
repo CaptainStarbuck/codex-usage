@@ -57,6 +57,8 @@ Options include:
 - Regenerate the browser report every 10 seconds and make the open page refresh itself
 - Maintain a compact local history snapshot of processed data
 
+The repository includes `src/utils/jsonl2json.js` as a convenience utility for converting Codex session JSONL files to formatted JSON. See [docs/jsonl2json.md](./docs/jsonl2json.md).
+
 ## .env **_New in v1.1_**
 
 Override default folders and settings in `.env`, now created for you. Check updates for changes in `.env.example`.
