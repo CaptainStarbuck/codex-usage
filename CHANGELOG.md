@@ -3,6 +3,10 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+### 2026-05-13 / v1.1.4
+
+- HTML reports now show a sortable Sessions table with session aggregate rows and expandable event detail rows.
+
 ### 2026-05-13 / v1.1.3
 
 - HTML reports generated with `--force-refresh` now include a Refresh control for pausing and resuming browser auto-refresh.

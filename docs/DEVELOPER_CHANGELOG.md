@@ -2,6 +2,10 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
+### 2026-05-13 / v1.1.4
+
+- Changed the HTML Events table renderer to build session summary groups in the browser and render nested event detail tables per session.
+
 ### 2026-05-13 / v1.1.3
 
 - Added force-refresh metadata to the embedded HTML report model and moved browser reload scheduling into `src/html/report.js`.

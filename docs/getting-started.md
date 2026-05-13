@@ -59,7 +59,7 @@ node src/codex-usage.js --format html --out codex-usage.html
 node src/codex-usage.js --format html --out ./codex-usage.html
 ```
 
-Open the generated HTML file in a browser to review quota cards, summary cards, warnings, timeline, top sessions, top events, model summaries, and the sortable Events table.
+Open the generated HTML file in a browser to review quota cards, summary cards, warnings, timelines, model summaries, and the sortable Sessions table with expandable event details.
 
 ## Keep A Browser Report Current
 

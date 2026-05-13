@@ -24,7 +24,7 @@ The report includes:
 - Account quota cards when Codex rate limit snapshots are available.
 - Session, model-level, and event summaries.
 - Warnings and notices for notable usage patterns.
-- A sortable event table in the HTML report, with expandable details.
+- A sortable Sessions table in the HTML report, with expandable event details.
 - Dynamic HTML report styling, currently with two available files, one light and one dark.
 - Optional compact JSONL history snapshots for local trend storage.
 

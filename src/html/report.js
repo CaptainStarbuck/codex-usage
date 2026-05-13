@@ -29,7 +29,23 @@ const tokenDisplayColumns = [
 const tableColumnLabels = {
     observed_token_volume: 'Total Tokens',
 };
-const eventColumns = [
+/** @type {Record<string, string>} */
+const sessionGroupColumnLabels = {
+    ...tableColumnLabels,
+    timestamp: 'Started',
+};
+/** @type {Record<string, string>} */
+const sessionGroupEventColumnLabels = {
+    ...tableColumnLabels,
+    session_id: 'Event',
+};
+const sessionGroupColumns = [
+    'timestamp',
+    'session_id',
+    'model',
+    ...tokenDisplayColumns,
+];
+const sessionGroupEventColumns = [
     'timestamp',
     'session_id',
     'seconds_since_previous',
@@ -321,7 +337,7 @@ function clearRefreshTimer() {
 }
 
 /**
- * Renders summary cards using the same token order and titles as Events.
+ * Renders summary cards using the same token order and titles as Sessions.
  *
  * @returns {void}
  */
@@ -852,7 +868,7 @@ function timelineTitle(bucket) {
 }
 
 /**
- * Reads persisted Events table state for the current report file.
+ * Reads persisted Sessions table state for the current report file.
  *
  * @returns {{ expanded: string[], sortColumn: string | undefined, sortDirection: number }} Table state.
  */
@@ -880,7 +896,7 @@ function readEventTableState() {
 }
 
 /**
- * Persists Events table state when browser storage is available.
+ * Persists Sessions table state when browser storage is available.
  *
  * @param {{ expanded: string[], sortColumn: string | undefined, sortDirection: number }} state Table state.
  * @returns {void}
@@ -904,7 +920,7 @@ function writeEventTableState(state) {
 function eventTableStateKey() {
     return [
         'codex-usage',
-        'events-table-state',
+        'sessions-table-state',
         window.location.pathname,
         report.metadata.codex_home || '',
         report.window.minutes || '',
@@ -967,21 +983,13 @@ function modelGroupsTableStateKey() {
 }
 
 /**
- * Builds a stable identity for an event row across generated page reloads.
+ * Builds a stable identity for a session group across generated page reloads.
  *
- * @param {object} row Report event row.
- * @returns {string} Event identity.
+ * @param {object} row Session group row.
+ * @returns {string} Session group identity.
  */
-function eventRowKey(row) {
-    return [
-        row.timestamp,
-        row.session_id,
-        row.turn_index,
-        row.raw_total_tokens,
-        row.observed_token_volume,
-    ]
-        .map((value) => String(value ?? ''))
-        .join('|');
+function sessionGroupRowKey(row) {
+    return String(row.session_id ?? '');
 }
 
 /**
@@ -1079,44 +1087,41 @@ function renderColumnGroup(columns, withToggle = false) {
 }
 
 /**
- * Renders a sortable table and restores Events detail expansion state.
+ * Renders sortable session groups and restores expanded event details.
  *
  * @param {string} id Table element id.
- * @param {object[]} rows Table rows.
- * @param {string[]} columns Visible columns.
- * @param {{ details?: boolean, labels?: Record<string, string> }} [options] Rendering options.
+ * @param {object[]} rows Normalized event rows.
  * @returns {void}
  */
-function renderTable(id, rows, columns, options = {}) {
+function renderSessionGroupsTable(id, rows) {
     const table = document.getElementById(id);
-    if (rows.length === 0) {
+    const groups = buildSessionGroups(rows);
+
+    if (groups.length === 0) {
         table.innerHTML = '<tbody><tr><td>No rows found.</td></tr></tbody>';
         return;
     }
-    const expandedRows = new Set(
-        options.details ? eventTableState.expanded : []
-    );
-    let sortColumn =
-        options.details && columns.includes(eventTableState.sortColumn)
-            ? eventTableState.sortColumn
-            : columns[0];
-    let sortDirection = options.details ? eventTableState.sortDirection : 1;
+
+    const expandedRows = new Set(eventTableState.expanded);
+    let sortColumn = sessionGroupColumns.includes(eventTableState.sortColumn)
+        ? eventTableState.sortColumn
+        : sessionGroupColumns[0];
+    let sortDirection = eventTableState.sortDirection;
 
     /**
-     * Draws the current table view and wires interactive controls.
+     * Draws the current Sessions table view and wires interactive controls.
      *
      * @returns {void}
      */
     function draw() {
-        const sortedRows = [...rows].sort(
+        const sortedGroups = [...groups].sort(
             (left, right) =>
                 compareValues(left[sortColumn], right[sortColumn]) *
                 sortDirection
         );
         const head =
-            '<thead><tr>' +
-            (options.details ? '<th></th>' : '') +
-            columns
+            '<thead><tr><th></th>' +
+            sessionGroupColumns
                 .map(
                     (column) =>
                         '<th class="' +
@@ -1124,27 +1129,25 @@ function renderTable(id, rows, columns, options = {}) {
                         '" data-column="' +
                         html(column) +
                         '">' +
-                        columnLabelHtml(column, options.labels) +
+                        columnLabelHtml(column, sessionGroupColumnLabels) +
                         '</th>'
                 )
                 .join('') +
             '</tr></thead>';
         const body =
             '<tbody>' +
-            sortedRows
-                .map((row, index) =>
-                    renderTableRow(
-                        row,
-                        columns,
+            sortedGroups
+                .map((group, index) =>
+                    renderSessionGroupRow(
+                        group,
                         index,
-                        options,
-                        expandedRows.has(eventRowKey(row))
+                        expandedRows.has(sessionGroupRowKey(group))
                     )
                 )
                 .join('') +
             '</tbody>';
         table.innerHTML =
-            renderColumnGroup(columns, options.details) + head + body;
+            renderColumnGroup(sessionGroupColumns, true) + head + body;
         table.querySelectorAll('th[data-column]').forEach((header) => {
             header.addEventListener('click', () => {
                 const column = header.dataset.column;
@@ -1154,29 +1157,27 @@ function renderTable(id, rows, columns, options = {}) {
                     sortColumn = column;
                     sortDirection = 1;
                 }
-                if (options.details) {
-                    eventTableState.sortColumn = sortColumn;
-                    eventTableState.sortDirection = sortDirection;
-                    writeEventTableState(eventTableState);
-                }
+                eventTableState.sortColumn = sortColumn;
+                eventTableState.sortDirection = sortDirection;
+                writeEventTableState(eventTableState);
                 draw();
             });
         });
-        table.querySelectorAll('.event-toggle').forEach((button) => {
+        table.querySelectorAll('.session-group-toggle').forEach((button) => {
             button.addEventListener('click', () => {
                 const detailRow = table.querySelector(
                     '[data-detail-row="' + button.dataset.detail + '"]'
                 );
                 const expanded =
                     button.getAttribute('aria-expanded') === 'true';
-                const eventKey = button.dataset.eventKey || '';
+                const groupKey = button.dataset.groupKey || '';
                 button.setAttribute('aria-expanded', String(!expanded));
                 button.textContent = expanded ? '+' : '-';
                 detailRow.hidden = expanded;
                 if (expanded) {
-                    expandedRows.delete(eventKey);
+                    expandedRows.delete(groupKey);
                 } else {
-                    expandedRows.add(eventKey);
+                    expandedRows.add(groupKey);
                 }
                 eventTableState.expanded = [...expandedRows];
                 writeEventTableState(eventTableState);
@@ -1185,6 +1186,180 @@ function renderTable(id, rows, columns, options = {}) {
     }
 
     draw();
+}
+
+/**
+ * Builds sorted summary rows for each session.
+ *
+ * @param {object[]} rows Normalized event rows.
+ * @returns {object[]} Session group summary rows.
+ */
+function buildSessionGroups(rows) {
+    /** @type {Map<string, object[]>} */
+    const groupedRows = new Map();
+
+    for (const row of rows) {
+        const sessionId = String(row.session_id ?? 'unknown');
+        const sessionRows = groupedRows.get(sessionId) ?? [];
+        sessionRows.push(row);
+        groupedRows.set(sessionId, sessionRows);
+    }
+
+    return [...groupedRows.values()]
+        .map(summarizeSessionGroup)
+        .sort((left, right) =>
+            String(left.timestamp ?? '').localeCompare(
+                String(right.timestamp ?? '')
+            )
+        );
+}
+
+/**
+ * Summarizes all events for one session.
+ *
+ * @param {object[]} rows Rows for one session.
+ * @returns {object} Session group summary row.
+ */
+function summarizeSessionGroup(rows) {
+    const sortedRows = [...rows].sort((first, second) =>
+        first.timestamp.localeCompare(second.timestamp)
+    );
+    const firstRow = sortedRows[0] ?? {};
+    const totals = sumRows(sortedRows);
+
+    return {
+        timestamp: String(firstRow.timestamp ?? ''),
+        session_id: String(firstRow.session_id ?? 'unknown'),
+        model: summarizeModelDisplay(sortedRows),
+        events: sortedRows,
+        ...totals,
+    };
+}
+
+/**
+ * Summarizes model and intelligence pairs used by a group of event rows.
+ *
+ * @param {object[]} rows Rows to inspect.
+ * @returns {string} Comma-separated model display values.
+ */
+function summarizeModelDisplay(rows) {
+    const modelPairs = rows.map(
+        (row) =>
+            String(row.model ?? 'unknown') +
+            '/' +
+            String(row.intelligence_level ?? 'unknown')
+    );
+
+    return [...new Set(modelPairs)].sort().join(', ');
+}
+
+/**
+ * Renders one expandable session summary row.
+ *
+ * @param {object} group Session group summary row.
+ * @param {number} index Row index.
+ * @param {boolean} expanded Whether the row should render expanded.
+ * @returns {string} Table row markup.
+ */
+function renderSessionGroupRow(group, index, expanded = false) {
+    const detailId = 'session-group-' + index;
+    const cells = sessionGroupColumns
+        .map(
+            (column) =>
+                '<td class="' +
+                html(columnClasses(column)) +
+                '">' +
+                html(displayCell(group, column)) +
+                '</td>'
+        )
+        .join('');
+
+    return (
+        '<tr><td><button class="event-toggle session-group-toggle" type="button" aria-expanded="' +
+        String(expanded) +
+        '" data-detail="' +
+        detailId +
+        '" data-group-key="' +
+        html(sessionGroupRowKey(group)) +
+        '">' +
+        (expanded ? '-' : '+') +
+        '</button></td>' +
+        cells +
+        '</tr><tr class="event-detail-row" data-detail-row="' +
+        detailId +
+        '"' +
+        (expanded ? '' : ' hidden') +
+        '><td colspan="' +
+        (sessionGroupColumns.length + 1) +
+        '">' +
+        renderSessionGroupEventsTable(group.events || []) +
+        '</td></tr>'
+    );
+}
+
+/**
+ * Renders the event detail rows nested under a session.
+ *
+ * @param {object[]} rows Event rows for one session.
+ * @returns {string} Nested event table markup.
+ */
+function renderSessionGroupEventsTable(rows) {
+    const head =
+        '<thead><tr>' +
+        sessionGroupEventColumns
+            .map(
+                (column) =>
+                    '<th class="' +
+                    html(columnClasses(column)) +
+                    '">' +
+                    columnLabelHtml(column, sessionGroupEventColumnLabels) +
+                    '</th>'
+            )
+            .join('') +
+        '</tr></thead>';
+    const body =
+        '<tbody>' +
+        rows
+            .map(
+                (row) =>
+                    '<tr>' +
+                    sessionGroupEventColumns
+                        .map(
+                            (column) =>
+                                '<td class="' +
+                                html(columnClasses(column)) +
+                                '">' +
+                                html(displaySessionEventCell(row, column)) +
+                                '</td>'
+                        )
+                        .join('') +
+                    '</tr>'
+            )
+            .join('') +
+        '</tbody>';
+
+    return (
+        '<table class="nested-events-table">' +
+        renderColumnGroup(sessionGroupEventColumns) +
+        head +
+        body +
+        '</table>'
+    );
+}
+
+/**
+ * Formats a nested session event cell.
+ *
+ * @param {object} row Event row.
+ * @param {string} column Report field key.
+ * @returns {string | number} Display-ready field value.
+ */
+function displaySessionEventCell(row, column) {
+    if (column === 'session_id') {
+        return display('turn_index', row.turn_index);
+    }
+
+    return displayCell(row, column);
 }
 
 /**
@@ -1479,52 +1654,6 @@ function renderModelGroupEventsTable(rows) {
     );
 }
 
-/**
- * Renders a table row and optional event detail row.
- *
- * @param {object} row Report row.
- * @param {string[]} columns Visible columns.
- * @param {number} index Row index in the current sorted view.
- * @param {{ details?: boolean }} options Rendering options.
- * @param {boolean} [expanded] Whether the detail row should render expanded.
- * @returns {string} Table row markup.
- */
-function renderTableRow(row, columns, index, options, expanded = false) {
-    const cells = columns
-        .map(
-            (column) =>
-                '<td class="' +
-                html(columnClasses(column)) +
-                '">' +
-                html(displayCell(row, column)) +
-                '</td>'
-        )
-        .join('');
-    if (!options.details) {
-        return '<tr>' + cells + '</tr>';
-    }
-    const detailId = 'event-' + index;
-    return (
-        '<tr><td><button class="event-toggle" type="button" aria-expanded="' +
-        String(expanded) +
-        '" data-detail="' +
-        detailId +
-        '" data-event-key="' +
-        html(eventRowKey(row)) +
-        '">' +
-        (expanded ? '-' : '+') +
-        '</button></td>' +
-        cells +
-        '</tr><tr class="event-detail-row" data-detail-row="' +
-        detailId +
-        '"' +
-        (expanded ? '' : ' hidden') +
-        '><td colspan="' +
-        (columns.length + 1) +
-        '"><div class="event-detail"><h3>Detail</h3></div></td></tr>'
-    );
-}
-
 function compareValues(left, right) {
     const leftNumber = Number(left);
     const rightNumber = Number(right);
@@ -1605,8 +1734,5 @@ renderInsights();
 // renderTopSessions();
 // renderTopEvents();
 renderModelGroupsTable('models-table', report.rows || []);
-renderTable('events-table', report.rows || [], eventColumns, {
-    details: true,
-    labels: tableColumnLabels,
-});
+renderSessionGroupsTable('events-table', report.rows || []);
 renderSessionPaths();
