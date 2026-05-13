@@ -42,7 +42,7 @@ The report uses raw numeric fields in structured data and leaves rounding to ren
 
 ## HTML Report
 
-The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains quota cards, summary cards, a stacked token timeline, warnings and notices, top sessions, top events, model-level summaries, a sortable event table, and a session path reference card.
+The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains quota cards, summary cards, a stacked token timeline, warnings and notices, model-level summaries, a sortable event table, and a session path reference card.
 
 The timeline uses inline SVG and stacks cached input, effective input, output, and reasoning output tokens. Browser titles on timeline bars include timestamp or bucket, session id, model, intelligence level, token values, and cache hit rate.
 

@@ -9,6 +9,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 - Added `src/utils/jsonl2json.js` as a convenience utility for converting Codex session JSONL files to formatted JSON. See `docs/jsonl2json.md`.
 - HTML report session columns display compact session hash references, and full session file paths appear in a Session Paths card.
 - HTML report numeric table headers align with numeric values, the Turn Index column is compact, and Events table model values include intelligence level.
+- HTML report Top Sessions and Top Events cards are temporarily disabled.
 
 ### 2026-05-12 / v1.1.1
 

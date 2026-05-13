@@ -332,12 +332,19 @@ function renderInsights() {
         '</div>';
 }
 
+/*
+ * Top Sessions and Top Events are temporarily disabled.
+ *
+ * Restore these functions together with the matching dashboard markup in
+ * base.html and render calls at the bottom of this file.
+ */
+
 /**
  * Renders the highest-volume sessions as compact dashboard cards.
  *
  * @returns {void}
  */
-function renderTopSessions() {
+/* function renderTopSessions() {
     const node = document.getElementById('top-sessions');
     const sessions = [...(report.sessions || [])]
         .sort(
@@ -375,14 +382,14 @@ function renderTopSessions() {
                 '</b></span></div></article>'
         )
         .join('');
-}
+} */
 
 /**
  * Renders the highest-volume usage events as compact dashboard cards.
  *
  * @returns {void}
  */
-function renderTopEvents() {
+/* function renderTopEvents() {
     const node = document.getElementById('top-events');
     const rows = [...(report.rows || [])]
         .sort(
@@ -424,7 +431,7 @@ function renderTopEvents() {
                 '</b></span></div></article>'
         )
         .join('');
-}
+} */
 
 function renderTimeline() {
     const node = document.getElementById('timeline');
@@ -1364,8 +1371,9 @@ renderQuota();
 renderSummary();
 renderTimeline();
 renderInsights();
-renderTopSessions();
-renderTopEvents();
+// Top Sessions and Top Events are temporarily disabled.
+// renderTopSessions();
+// renderTopEvents();
 renderModelGroupsTable('models-table', report.rows || []);
 renderTable('events-table', report.rows || [], eventColumns, {
     details: true,
