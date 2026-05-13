@@ -15,39 +15,33 @@ const numberFields = new Set([
     'seconds_since_previous',
     'max_single_event_observed_token_volume',
 ]);
+/** @type {string[]} */
+const tokenDisplayColumns = [
+    'input_tokens',
+    'cached_input_tokens',
+    'effective_input_tokens',
+    'cache_hit_rate',
+    'output_tokens',
+    'reasoning_output_tokens',
+    'observed_token_volume',
+];
+/** @type {Record<string, string>} */
+const tableColumnLabels = {
+    observed_token_volume: 'Total Tokens',
+};
 const eventColumns = [
     'timestamp',
     'session_id',
     'seconds_since_previous',
     'model',
-    'input_tokens',
-    'cached_input_tokens',
-    'effective_input_tokens',
-    'output_tokens',
-    'observed_token_volume',
-    'cache_hit_rate',
-    'reasoning_output_tokens',
+    ...tokenDisplayColumns,
 ];
-const modelGroupColumns = [
-    'model',
-    'event_count',
-    'observed_token_volume',
-    'effective_input_tokens',
-    'cached_input_tokens',
-    'cache_hit_rate',
-    'output_tokens',
-    'reasoning_output_tokens',
-];
+const modelGroupColumns = ['model', 'event_count', ...tokenDisplayColumns];
 const modelGroupEventColumns = [
     'timestamp',
     'session_id',
     'seconds_since_previous',
-    'observed_token_volume',
-    'effective_input_tokens',
-    'cached_input_tokens',
-    'cache_hit_rate',
-    'output_tokens',
-    'reasoning_output_tokens',
+    ...tokenDisplayColumns,
 ];
 const datetimeFormat = report.metadata?.datetime_format || 'MMM D, h:mm AP';
 const refreshSeconds = Number(report.metadata?.refresh_seconds || 0);
@@ -308,35 +302,41 @@ function clearRefreshTimer() {
     refreshTimer = undefined;
 }
 
+/**
+ * Renders summary cards using the same token order and titles as Events.
+ *
+ * @returns {void}
+ */
 function renderSummary() {
     const totals = report.totals || {};
     const cards = [
-        ['Observed Token Volume', integer(totals.observed_token_volume), 1],
-        ['Effective Input', integer(totals.effective_input_tokens), 1],
+        ['input_tokens', integer(totals.input_tokens), 1],
         [
-            'Cached Input',
+            'cached_input_tokens',
             integer(totals.cached_input_tokens),
             totals.cache_hit_rate,
         ],
+        ['effective_input_tokens', integer(totals.effective_input_tokens), 1],
         [
-            'Cache Hit Rate',
+            'cache_hit_rate',
             percent(totals.cache_hit_rate),
             totals.cache_hit_rate,
         ],
-        ['Output Tokens', integer(totals.output_tokens), 1],
+        ['output_tokens', integer(totals.output_tokens), 1],
         [
-            'Reasoning Output',
+            'reasoning_output_tokens',
             integer(totals.reasoning_output_tokens),
             totals.reasoning_output_rate,
         ],
-        ['Sessions', integer((report.sessions || []).length), 1],
-        ['Events', integer((report.rows || []).length), 1],
+        ['observed_token_volume', integer(totals.observed_token_volume), 1],
+        ['sessions', integer((report.sessions || []).length), 1],
+        ['events', integer((report.rows || []).length), 1],
     ];
     document.getElementById('summary').innerHTML = cards
         .map(
-            ([label, value, rate]) =>
+            ([field, value, rate]) =>
                 '<article class="card"><div class="label">' +
-                html(label) +
+                html(displayLabel(String(field), tableColumnLabels)) +
                 '</div><div class="value">' +
                 html(value) +
                 '</div><div class="bar"><span style="width:' +
@@ -880,6 +880,17 @@ function columnLabel(column) {
 }
 
 /**
+ * Gets a user-facing display label with optional field-specific overrides.
+ *
+ * @param {string} column Report field key.
+ * @param {Record<string, string>} [labels] Label overrides by field key.
+ * @returns {string} Display label.
+ */
+function displayLabel(column, labels = {}) {
+    return labels[column] ?? columnLabel(column);
+}
+
+/**
  * Converts report field keys to safe label markup for table headers.
  *
  * @param {string} column Report field key.
@@ -888,13 +899,10 @@ function columnLabel(column) {
  */
 function columnLabelHtml(column, labels = {}) {
     if (column === 'turn_index') {
-        return 'Turn<br>Index';
-    }
-    if (labels[column]) {
-        return html(labels[column]);
+        return 'Turn<br/>Index';
     }
 
-    return html(columnLabel(column));
+    return html(displayLabel(column, labels)).replace(/ /gu, '<br/>');
 }
 
 /**
@@ -1068,7 +1076,7 @@ function renderModelGroupsTable(id, rows) {
                     '<th class="' +
                     html(columnClasses(column)) +
                     '">' +
-                    columnLabelHtml(column) +
+                    columnLabelHtml(column, tableColumnLabels) +
                     '</th>'
             )
             .join('') +
@@ -1300,7 +1308,7 @@ function renderModelGroupEventsTable(rows) {
                     '<th class="' +
                     html(columnClasses(column)) +
                     '">' +
-                    columnLabelHtml(column) +
+                    columnLabelHtml(column, tableColumnLabels) +
                     '</th>'
             )
             .join('') +
@@ -1462,8 +1470,6 @@ renderInsights();
 renderModelGroupsTable('models-table', report.rows || []);
 renderTable('events-table', report.rows || [], eventColumns, {
     details: true,
-    labels: {
-        observed_token_volume: 'Total Tokens',
-    },
+    labels: tableColumnLabels,
 });
 renderSessionPaths();

@@ -7,6 +7,8 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
 - HTML reports generated with `--force-refresh` now include a Refresh control for pausing and resuming browser auto-refresh.
 - Fix EOL in Timeline chart mouseover.
+- Summary, collapsed By Model, and expanded By Model token displays now use the same order and labels as the Events table.
+- HTML report token displays now place Cache Hit Rate after Effective Input Tokens and Reasoning Output Tokens after Output Tokens, and table headers use line breaks for multi-word labels.
 
 ### 2026-05-13 / v1.1.2
 

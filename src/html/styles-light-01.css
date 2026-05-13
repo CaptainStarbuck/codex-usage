@@ -267,6 +267,9 @@ td.field-turn-index {
     white-space: normal;
     overflow-wrap: normal;
 }
+th {
+    line-height: 1.15;
+}
 col.field-toggle-control {
     width: 44px;
 }
@@ -284,6 +287,18 @@ col.field-session-id {
 }
 col.field-model {
     width: 150px;
+}
+col.field-event-count,
+col.field-cache-hit-rate {
+    width: 76px;
+}
+col.field-input-tokens,
+col.field-cached-input-tokens,
+col.field-effective-input-tokens,
+col.field-output-tokens,
+col.field-reasoning-output-tokens,
+col.field-observed-token-volume {
+    width: 92px;
 }
 .event-toggle {
     width: 28px;
