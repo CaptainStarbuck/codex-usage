@@ -341,9 +341,24 @@ function renderSummary() {
                 html(value) +
                 '</div><div class="bar"><span style="width:' +
                 Math.max(0, Math.min(100, Number(rate || 0) * 100)) +
-                '%"></span></div></article>'
+                '%"></span></div></article>' +
+                summaryGroupBreak(String(field))
         )
         .join('');
+}
+
+/**
+ * Inserts Summary row breaks after the Input and Output groups.
+ *
+ * @param {string} field Summary field key.
+ * @returns {string} Summary group break markup or an empty string.
+ */
+function summaryGroupBreak(field) {
+    if (field === 'cache_hit_rate' || field === 'reasoning_output_tokens') {
+        return '<div class="summary-break" aria-hidden="true"></div>';
+    }
+
+    return '';
 }
 
 /**

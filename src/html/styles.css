@@ -101,6 +101,10 @@ h3 {
 .quota-cards {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
+.summary-break {
+    grid-column: 1 / -1;
+    height: 0;
+}
 .card,
 .panel {
     background: var(--panel);
