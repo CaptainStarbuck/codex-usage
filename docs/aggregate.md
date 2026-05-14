@@ -1,15 +1,14 @@
 # codex-usage.js
+
 Source file: `src/codex-usage.js`.
+
 ```javascript
 #!/usr/bin/env node
 
 import { mkdir } from 'node:fs/promises';
 
 import { DEFAULT_WINDOW_MINUTES } from './constants.js';
-import {
-    normalizeConfiguredOutputPath,
-    resolveConfiguredPath,
-} from './path-utils.js';
+import { normalizeConfiguredOutputPath, resolveConfiguredPath } from './path-utils.js';
 import { readAppEnvironment } from './settings.js';
 import { runInterval, runOnce } from './usage-runner.js';
 
@@ -112,17 +111,13 @@ function parseArgs(args) {
         options.interval !== undefined &&
         (!Number.isInteger(options.interval) || options.interval < 1)
     ) {
-        throw new Error(
-            '--interval must be a positive integer number of seconds.'
-        );
+        throw new Error('--interval must be a positive integer number of seconds.');
     }
     if (!['text', 'json', 'html'].includes(options.format)) {
         throw new Error('--format must be one of: text, json, html.');
     }
     if (options.interval !== undefined && !options.out) {
-        throw new Error(
-            '--interval requires --out so each run can regenerate an output file.'
-        );
+        throw new Error('--interval requires --out so each run can regenerate an output file.');
     }
     if (options.forceRefresh && options.format !== 'html') {
         throw new Error('--force-refresh requires --format html.');
@@ -131,9 +126,7 @@ function parseArgs(args) {
         throw new Error('--force-refresh requires --interval.');
     }
     if (options.forceRefresh && (options.interval ?? 0) < 3) {
-        throw new Error(
-            '--force-refresh requires --interval of at least 3 seconds.'
-        );
+        throw new Error('--force-refresh requires --interval of at least 3 seconds.');
     }
 
     return options;
@@ -197,7 +190,9 @@ main().catch((error) => {
 ```
 
 # constants.js
+
 Source file: `src/constants.js`.
+
 ```javascript
 import { homedir } from 'node:os';
 import { join } from 'node:path';
@@ -227,7 +222,9 @@ export const LARGE_EVENT_TOKEN_THRESHOLD = 100000;
 ```
 
 # history-writer.js
+
 Source file: `src/history-writer.js`.
+
 ```javascript
 import { appendFile, mkdir } from 'node:fs/promises';
 
@@ -255,10 +252,7 @@ import {
 export async function appendHistorySnapshot(report, options) {
     const historyPath = getHistoryPath(options);
     const safePath = resolveHistoryPath(
-        normalizeConfiguredOutputPath(
-            historyPath,
-            dirnameConfiguredPath(historyPath)
-        )
+        normalizeConfiguredOutputPath(historyPath, dirnameConfiguredPath(historyPath))
     );
     const snapshot = {
         captured_at: report.metadata.generated_at,
@@ -302,7 +296,9 @@ function resolveHistoryPath(historyPath) {
 ```
 
 # path-utils.js
+
 Source file: `src/path-utils.js`.
+
 ```javascript
 import { platform } from 'node:os';
 import { basename, dirname, join, resolve, sep, win32 } from 'node:path';
@@ -403,15 +399,8 @@ export function resolveConfiguredPath(filePath) {
  * @param {string} potentialOutputFolder Folder that would receive generated output.
  * @returns {string} Path normalized for the current OS.
  */
-export function normalizeConfiguredOutputPath(
-    outputPath,
-    potentialOutputFolder
-) {
-    return normalizeConfiguredOutputPathForPlatform(
-        outputPath,
-        potentialOutputFolder,
-        platform()
-    );
+export function normalizeConfiguredOutputPath(outputPath, potentialOutputFolder) {
+    return normalizeConfiguredOutputPathForPlatform(outputPath, potentialOutputFolder, platform());
 }
 
 /**
@@ -518,7 +507,9 @@ function isWindowsStylePath(filePath) {
 ```
 
 # quota-snapshot.js
+
 Source file: `src/quota-snapshot.js`.
+
 ```javascript
 /**
  * Builds the quota report section from parsed Codex rate limit snapshots.
@@ -527,11 +518,7 @@ Source file: `src/quota-snapshot.js`.
  * @returns {object} Normalized quota report.
  */
 export function buildQuotaReport(input) {
-    const snapshot = selectQuotaSnapshot(
-        input.snapshots,
-        input.cutoff,
-        input.now
-    );
+    const snapshot = selectQuotaSnapshot(input.snapshots, input.cutoff, input.now);
 
     if (!snapshot) {
         return {
@@ -553,9 +540,7 @@ export function buildQuotaReport(input) {
         plan_type: stringOrEmpty(snapshot.rate_limits?.plan_type),
         limit_id: stringOrEmpty(snapshot.rate_limits?.limit_id),
         limit_name: stringOrEmpty(snapshot.rate_limits?.limit_name),
-        rate_limit_reached_type: stringOrEmpty(
-            snapshot.rate_limits?.rate_limit_reached_type
-        ),
+        rate_limit_reached_type: stringOrEmpty(snapshot.rate_limits?.rate_limit_reached_type),
         limits: normalizeLimits(snapshot.rate_limits),
         credits: normalizeCredits(snapshot.rate_limits?.credits),
         warnings: [],
@@ -574,9 +559,7 @@ export function buildQuotaReport(input) {
 function selectQuotaSnapshot(snapshots, cutoff, now) {
     const sortedSnapshots = snapshots
         .filter((snapshot) => isUsableSnapshot(snapshot, now))
-        .sort((first, second) =>
-            first.timestamp.localeCompare(second.timestamp)
-        );
+        .sort((first, second) => first.timestamp.localeCompare(second.timestamp));
     const inWindowSnapshots = sortedSnapshots.filter(
         (snapshot) => new Date(snapshot.timestamp) >= cutoff
     );
@@ -595,11 +578,7 @@ function selectQuotaSnapshot(snapshots, cutoff, now) {
 function isUsableSnapshot(snapshot, now) {
     const timestamp = new Date(String(snapshot.timestamp ?? ''));
 
-    return (
-        !Number.isNaN(timestamp.getTime()) &&
-        timestamp <= now &&
-        Boolean(snapshot.rate_limits)
-    );
+    return !Number.isNaN(timestamp.getTime()) && timestamp <= now && Boolean(snapshot.rate_limits);
 }
 
 /**
@@ -760,7 +739,9 @@ function stringOrEmpty(value) {
 ```
 
 # report-html.js
+
 Source file: `src/report-html.js`.
+
 ```javascript
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -791,10 +772,7 @@ export function renderHtmlReport(report, options = {}) {
         ['report.js', readHtmlSourceFile(REPORT_SCRIPT_PATH)],
     ]);
 
-    return replaceTemplateStubLines(
-        readHtmlSourceFile(BASE_TEMPLATE_PATH),
-        replacements
-    );
+    return replaceTemplateStubLines(readHtmlSourceFile(BASE_TEMPLATE_PATH), replacements);
 }
 
 /**
@@ -868,7 +846,9 @@ function escapeScriptJson(report) {
 ```
 
 # report-json.js
+
 Source file: `src/report-json.js`.
+
 ```javascript
 /**
  * Renders the structured report as stable JSON text.
@@ -882,7 +862,9 @@ export function renderJsonReport(report) {
 ```
 
 # report-renderer.js
+
 Source file: `src/report-renderer.js`.
+
 ```javascript
 import { renderHtmlReport } from './report-html.js';
 import { renderJsonReport } from './report-json.js';
@@ -908,9 +890,7 @@ export function renderReport(report, options) {
     }
     if (options.format === 'html') {
         return renderHtmlReport(report, {
-            refreshSeconds: options.forceRefresh
-                ? (options.interval ?? 0) - 2
-                : undefined,
+            refreshSeconds: options.forceRefresh ? (options.interval ?? 0) - 2 : undefined,
         });
     }
     return renderTextReport(report);
@@ -918,7 +898,9 @@ export function renderReport(report, options) {
 ```
 
 # report-text.js
+
 Source file: `src/report-text.js`.
+
 ```javascript
 import { TOKEN_FIELDS } from './constants.js';
 
@@ -978,16 +960,10 @@ function formatQuota(quota) {
     }
 
     /** @type {string[]} */
-    const lines = [
-        'Quota',
-        `captured_at: ${quota.captured_at}`,
-        `session_id: ${quota.session_id}`,
-    ];
+    const lines = ['Quota', `captured_at: ${quota.captured_at}`, `session_id: ${quota.session_id}`];
 
     for (const limit of quota.limits ?? []) {
-        const resetLabel = limit.resets_at_local
-            ? `, resets ${limit.resets_at_local}`
-            : '';
+        const resetLabel = limit.resets_at_local ? `, resets ${limit.resets_at_local}` : '';
         lines.push(
             `${limit.name}: ${formatPercentValue(limit.remaining_percent)} remaining (${formatPercentValue(limit.used_percent)} used${resetLabel})`
         );
@@ -1048,16 +1024,10 @@ function formatSummary(report) {
  */
 function formatTable(rows) {
     const widths = columnWidths(rows);
-    const header = COLUMNS.map((column) => pad(column, widths[column])).join(
-        '  '
-    );
-    const ruler = COLUMNS.map((column) => '-'.repeat(widths[column])).join(
-        '  '
-    );
+    const header = COLUMNS.map((column) => pad(column, widths[column])).join('  ');
+    const ruler = COLUMNS.map((column) => '-'.repeat(widths[column])).join('  ');
     const body = rows.map((row) =>
-        COLUMNS.map((column) =>
-            pad(String(row[column] ?? ''), widths[column])
-        ).join('  ')
+        COLUMNS.map((column) => pad(String(row[column] ?? ''), widths[column])).join('  ')
     );
 
     return [header, ruler, ...body].join('\n');
@@ -1071,16 +1041,11 @@ function formatTable(rows) {
  */
 function columnWidths(rows) {
     /** @type {Record<string, number>} */
-    const widths = Object.fromEntries(
-        COLUMNS.map((column) => [column, column.length])
-    );
+    const widths = Object.fromEntries(COLUMNS.map((column) => [column, column.length]));
 
     for (const row of rows) {
         for (const column of COLUMNS) {
-            widths[column] = Math.max(
-                widths[column],
-                String(row[column] ?? '').length
-            );
+            widths[column] = Math.max(widths[column], String(row[column] ?? '').length);
         }
     }
 
@@ -1130,7 +1095,9 @@ function formatPercentValue(value) {
 ```
 
 # session-files.js
+
 Source file: `src/session-files.js`.
+
 ```javascript
 import { readdir, stat } from 'node:fs/promises';
 import { SESSION_DIR_NAMES } from './constants.js';
@@ -1237,7 +1204,9 @@ async function getRecentFilePath(path, minMtime) {
 ```
 
 # session-parser.js
+
 Source file: `src/session-parser.js`.
+
 ```javascript
 import { readFile } from 'node:fs/promises';
 import { TOKEN_FIELDS } from './constants.js';
@@ -1337,19 +1306,10 @@ function addUsageRow(event, context, cutoff, file, rows, usageState) {
     const usage = event.payload?.info?.last_token_usage;
     const timestamp = new Date(event.timestamp ?? '');
 
-    if (
-        event.type !== 'event_msg' ||
-        event.payload?.type !== 'token_count' ||
-        !usage
-    ) {
+    if (event.type !== 'event_msg' || event.payload?.type !== 'token_count' || !usage) {
         return;
     }
-    if (
-        !hasAdvancedTotalUsage(
-            event.payload.info?.total_token_usage,
-            usageState
-        )
-    ) {
+    if (!hasAdvancedTotalUsage(event.payload.info?.total_token_usage, usageState)) {
         return;
     }
     if (Number.isNaN(timestamp.getTime()) || timestamp < cutoff) {
@@ -1377,11 +1337,7 @@ function addQuotaSnapshot(event, file, quotaSnapshots) {
     const timestamp = new Date(event.timestamp ?? '');
     const rateLimits = event.payload?.rate_limits;
 
-    if (
-        event.type !== 'event_msg' ||
-        event.payload?.type !== 'token_count' ||
-        !rateLimits
-    ) {
+    if (event.type !== 'event_msg' || event.payload?.type !== 'token_count' || !rateLimits) {
         return;
     }
     if (Number.isNaN(timestamp.getTime())) {
@@ -1435,10 +1391,7 @@ function totalUsageValue(totalUsage) {
         return totalTokens;
     }
 
-    return TOKEN_FIELDS.reduce(
-        (total, field) => total + readNumber(totalUsage[field]),
-        0
-    );
+    return TOKEN_FIELDS.reduce((total, field) => total + readNumber(totalUsage[field]), 0);
 }
 
 /**
@@ -1460,25 +1413,21 @@ function readNumber(value) {
  */
 function readSessionId(file) {
     const name = basenameConfiguredPath(String(file ?? ''));
-    return name.endsWith('.jsonl')
-        ? name.slice(0, -'.jsonl'.length)
-        : name || 'unknown';
+    return name.endsWith('.jsonl') ? name.slice(0, -'.jsonl'.length) : name || 'unknown';
 }
 ```
 
 # settings.js
+
 Source file: `src/settings.js`.
+
 ```javascript
 import { platform } from 'node:os';
 import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import {
-    DATA_PATH_WINDOWS_DEFAULT,
-    DEFAULT_CODEX_HOME,
-    DEFAULT_DATA_PATH,
-} from './constants.js';
+import { DATA_PATH_WINDOWS_DEFAULT, DEFAULT_CODEX_HOME, DEFAULT_DATA_PATH } from './constants.js';
 import { hasConfiguredPathSegment, joinConfiguredPath } from './path-utils.js';
 
 const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -1497,11 +1446,8 @@ const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
  */
 export async function readAppEnvironment(processEnv = process.env) {
     const fileEnv = await readDotEnvFile(join(PROJECT_ROOT, '.env'));
-    const codexHome = resolveCodexHomeSetting(
-        readSettingValue('CODEX_HOME', fileEnv, processEnv)
-    );
-    const dataPath =
-        readSettingValue('DATA_PATH', fileEnv, processEnv) ?? DEFAULT_DATA_PATH;
+    const codexHome = resolveCodexHomeSetting(readSettingValue('CODEX_HOME', fileEnv, processEnv));
+    const dataPath = readSettingValue('DATA_PATH', fileEnv, processEnv) ?? DEFAULT_DATA_PATH;
 
     return {
         codexHome,
@@ -1524,8 +1470,7 @@ export async function readConfigDefaults(codexHome) {
         const text = await readFile(configPath, 'utf8');
         defaults.model = readTomlString(text, 'model') ?? defaults.model;
         defaults.intelligenceLevel =
-            readTomlString(text, 'model_reasoning_effort') ??
-            defaults.intelligenceLevel;
+            readTomlString(text, 'model_reasoning_effort') ?? defaults.intelligenceLevel;
     } catch {
         // Config is only a fallback; session files remain the source of usage data.
     }
@@ -1604,10 +1549,7 @@ function prepareDotEnvTemplate(text) {
  * @returns {string} Dotenv contents with the setting assigned.
  */
 function replaceDotEnvSetting(text, key, value) {
-    const escapedKey = key.replace(
-        /[.*+?^${}()|[\]\\]/gu,
-        (match) => `\\${match}`
-    );
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/gu, (match) => `\\${match}`);
     const pattern = new RegExp(`^\\s*${escapedKey}\\s*=.*$`, 'mu');
     const assignment = `${key}=${value}`;
 
@@ -1615,9 +1557,7 @@ function replaceDotEnvSetting(text, key, value) {
         return text.replace(pattern, assignment);
     }
 
-    return text.endsWith('\n')
-        ? `${text}${assignment}\n`
-        : `${text}\n${assignment}\n`;
+    return text.endsWith('\n') ? `${text}${assignment}\n` : `${text}\n${assignment}\n`;
 }
 
 /**
@@ -1628,12 +1568,7 @@ function replaceDotEnvSetting(text, key, value) {
  * @returns {boolean} Whether the error has the expected code.
  */
 function isNodeFileError(error, code) {
-    return (
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
-        error.code === code
-    );
+    return typeof error === 'object' && error !== null && 'code' in error && error.code === code;
 }
 
 /**
@@ -1693,11 +1628,7 @@ function unwrapEnvValue(value) {
     const trimmed = value.trim();
     const quote = trimmed[0];
 
-    if (
-        (quote === '"' || quote === "'") &&
-        trimmed.endsWith(quote) &&
-        trimmed.length >= 2
-    ) {
+    if ((quote === '"' || quote === "'") && trimmed.endsWith(quote) && trimmed.length >= 2) {
         return trimmed.slice(1, -1);
     }
 
@@ -1732,17 +1663,16 @@ function resolveCodexHomeSetting(value) {
  * @returns {string | undefined} Setting value.
  */
 function readTomlString(text, key) {
-    const escapedKey = key.replace(
-        /[.*+?^${}()|[\]\\]/gu,
-        (match) => `\\${match}`
-    );
+    const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/gu, (match) => `\\${match}`);
     const pattern = new RegExp(`^\\s*${escapedKey}\\s*=\\s*"([^"]*)"`, 'mu');
     return pattern.exec(text)?.[1];
 }
 ```
 
 # usage-groups.js
+
 Source file: `src/usage-groups.js`.
+
 ```javascript
 import { TOKEN_FIELDS } from './constants.js';
 
@@ -1778,10 +1708,7 @@ export function groupSessions(rows) {
             reasoning_output_tokens: totals.reasoning_output_tokens,
             raw_total_tokens: totals.raw_total_tokens,
             cache_hit_rate: totals.cache_hit_rate,
-            max_single_event_observed_token_volume: maxValue(
-                sortedRows,
-                'observed_token_volume'
-            ),
+            max_single_event_observed_token_volume: maxValue(sortedRows, 'observed_token_volume'),
             source_file: sortedRows[0]?.file ?? '',
         });
     }
@@ -1858,9 +1785,7 @@ function groupRows(rows, field) {
  * @returns {string[]} Unique values in sorted order.
  */
 function uniqueValues(rows, field) {
-    return [
-        ...new Set(rows.map((row) => String(row[field] ?? 'unknown'))),
-    ].sort();
+    return [...new Set(rows.map((row) => String(row[field] ?? 'unknown')))].sort();
 }
 
 /**
@@ -1892,20 +1817,12 @@ function summarizeRows(rows) {
             totals[field] += Number(row[field] ?? 0);
         }
         totals.observed_token_volume += Number(row.observed_token_volume ?? 0);
-        totals.effective_input_tokens += Number(
-            row.effective_input_tokens ?? 0
-        );
+        totals.effective_input_tokens += Number(row.effective_input_tokens ?? 0);
         totals.visible_output_tokens += Number(row.visible_output_tokens ?? 0);
     }
 
-    totals.cache_hit_rate = rate(
-        totals.cached_input_tokens,
-        totals.input_tokens
-    );
-    totals.reasoning_output_rate = rate(
-        totals.reasoning_output_tokens,
-        totals.output_tokens
-    );
+    totals.cache_hit_rate = rate(totals.cached_input_tokens, totals.input_tokens);
+    totals.reasoning_output_rate = rate(totals.reasoning_output_tokens, totals.output_tokens);
     return totals;
 }
 
@@ -1925,12 +1842,11 @@ function rate(numerator, denominator) {
 ```
 
 # usage-insights.js
+
 Source file: `src/usage-insights.js`.
+
 ```javascript
-import {
-    LARGE_EVENT_TOKEN_THRESHOLD,
-    LARGE_INPUT_TOKEN_THRESHOLD,
-} from './constants.js';
+import { LARGE_EVENT_TOKEN_THRESHOLD, LARGE_INPUT_TOKEN_THRESHOLD } from './constants.js';
 
 /**
  * Builds report insights from normalized rows and grouped summaries.
@@ -2011,9 +1927,7 @@ function addQuotaWarnings(report, insights) {
  * @returns {void}
  */
 function addDuplicateNotice(report, insights) {
-    const count = Number(
-        report.metadata?.duplicate_token_count_events_ignored ?? 0
-    );
+    const count = Number(report.metadata?.duplicate_token_count_events_ignored ?? 0);
 
     if (count > 0) {
         insights.push(
@@ -2039,11 +1953,7 @@ function addDuplicateNotice(report, insights) {
 function addUnknownMetadataWarnings(rows, insights) {
     if (rows.some((row) => row.model === 'unknown')) {
         insights.push(
-            createInsight(
-                'warning',
-                'unknown_model',
-                'At least one event has an unknown model.'
-            )
+            createInsight('warning', 'unknown_model', 'At least one event has an unknown model.')
         );
     }
 
@@ -2072,8 +1982,7 @@ function addLargeEventWarnings(rows, insights) {
             Number(row.cache_hit_rate ?? 0) < 0.5
     );
     const largeRows = rows.filter(
-        (row) =>
-            Number(row.observed_token_volume ?? 0) > LARGE_EVENT_TOKEN_THRESHOLD
+        (row) => Number(row.observed_token_volume ?? 0) > LARGE_EVENT_TOKEN_THRESHOLD
     );
 
     if (lowCacheRows.length > 0) {
@@ -2098,8 +2007,7 @@ function addLargeEventWarnings(rows, insights) {
                 'At least one event exceeds 100k observed token volume.',
                 {
                     count: largeRows.length,
-                    threshold_observed_token_volume:
-                        LARGE_EVENT_TOKEN_THRESHOLD,
+                    threshold_observed_token_volume: LARGE_EVENT_TOKEN_THRESHOLD,
                 }
             )
         );
@@ -2173,7 +2081,9 @@ function createInsight(severity, code, message, details = {}) {
 ```
 
 # usage-loader.js
+
 Source file: `src/usage-loader.js`.
+
 ```javascript
 import { findSessionFiles } from './session-files.js';
 import { parseSessionFile } from './session-parser.js';
@@ -2200,15 +2110,11 @@ export async function loadUsageData(codexHome, cutoff) {
     for (const parsed of parsedFiles) {
         rows.push(...parsed.rows);
         quotaSnapshots.push(...parsed.quotaSnapshots);
-        duplicateTokenCountEvents += Number(
-            parsed.duplicateTokenCountEvents ?? 0
-        );
+        duplicateTokenCountEvents += Number(parsed.duplicateTokenCountEvents ?? 0);
     }
 
     return {
-        rows: rows.sort((first, second) =>
-            first.timestamp.localeCompare(second.timestamp)
-        ),
+        rows: rows.sort((first, second) => first.timestamp.localeCompare(second.timestamp)),
         quotaSnapshots: quotaSnapshots.sort((first, second) =>
             first.timestamp.localeCompare(second.timestamp)
         ),
@@ -2250,7 +2156,9 @@ export async function loadUsageRows(codexHome, cutoff) {
 ```
 
 # usage-metrics.js
+
 Source file: `src/usage-metrics.js`.
+
 ```javascript
 import { DERIVED_TOKEN_FIELDS, TOKEN_FIELDS } from './constants.js';
 import { buildQuotaReport } from './quota-snapshot.js';
@@ -2292,9 +2200,7 @@ export function buildUsageReport(input) {
             format: input.format,
             row_count: rows.length,
             session_count: sessions.length,
-            duplicate_token_count_events_ignored: Number(
-                input.duplicateTokenCountEvents ?? 0
-            ),
+            duplicate_token_count_events_ignored: Number(input.duplicateTokenCountEvents ?? 0),
         },
     };
 
@@ -2319,20 +2225,12 @@ export function buildTotals(rows) {
             totals[field] += Number(row[field] ?? 0);
         }
         totals.observed_token_volume += Number(row.observed_token_volume ?? 0);
-        totals.effective_input_tokens += Number(
-            row.effective_input_tokens ?? 0
-        );
+        totals.effective_input_tokens += Number(row.effective_input_tokens ?? 0);
         totals.visible_output_tokens += Number(row.visible_output_tokens ?? 0);
     }
 
-    totals.cache_hit_rate = rate(
-        totals.cached_input_tokens,
-        totals.input_tokens
-    );
-    totals.reasoning_output_rate = rate(
-        totals.reasoning_output_tokens,
-        totals.output_tokens
-    );
+    totals.cache_hit_rate = rate(totals.cached_input_tokens, totals.input_tokens);
+    totals.reasoning_output_rate = rate(totals.reasoning_output_tokens, totals.output_tokens);
     return totals;
 }
 
@@ -2352,7 +2250,9 @@ export function rate(numerator, denominator) {
 ```
 
 # usage-normalizer.js
+
 Source file: `src/usage-normalizer.js`.
+
 ```javascript
 import { basenameConfiguredPath } from './path-utils.js';
 import { DERIVED_TOKEN_FIELDS, TOKEN_FIELDS } from './constants.js';
@@ -2368,9 +2268,7 @@ export function normalizeUsageRows(rows) {
     const rowsBySession = new Map();
     const normalizedRows = rows
         .map(normalizeUsageRow)
-        .sort((first, second) =>
-            first.timestamp.localeCompare(second.timestamp)
-        );
+        .sort((first, second) => first.timestamp.localeCompare(second.timestamp));
 
     for (const row of normalizedRows) {
         const sessionRows = rowsBySession.get(row.session_id) ?? [];
@@ -2402,16 +2300,10 @@ function normalizeUsageRow(row) {
                 : readNumber(row[field]);
     }
 
-    const observedTokenVolume =
-        tokenValues.input_tokens + tokenValues.output_tokens;
-    const effectiveInputTokens =
-        tokenValues.input_tokens - tokenValues.cached_input_tokens;
-    const visibleOutputTokens =
-        tokenValues.output_tokens - tokenValues.reasoning_output_tokens;
-    const cacheHitRate = rate(
-        tokenValues.cached_input_tokens,
-        tokenValues.input_tokens
-    );
+    const observedTokenVolume = tokenValues.input_tokens + tokenValues.output_tokens;
+    const effectiveInputTokens = tokenValues.input_tokens - tokenValues.cached_input_tokens;
+    const visibleOutputTokens = tokenValues.output_tokens - tokenValues.reasoning_output_tokens;
+    const cacheHitRate = rate(tokenValues.cached_input_tokens, tokenValues.input_tokens);
     const reasoningOutputRate = rate(
         tokenValues.reasoning_output_tokens,
         tokenValues.output_tokens
@@ -2441,9 +2333,7 @@ function normalizeUsageRow(row) {
  * @returns {void}
  */
 function applySessionPositionFields(rows) {
-    rows.sort((first, second) =>
-        first.timestamp.localeCompare(second.timestamp)
-    );
+    rows.sort((first, second) => first.timestamp.localeCompare(second.timestamp));
 
     for (let index = 0; index < rows.length; index += 1) {
         const previousRow = rows[index - 1];
@@ -2488,9 +2378,7 @@ function rate(numerator, denominator) {
  */
 function readSessionId(file) {
     const name = basenameConfiguredPath(String(file ?? ''));
-    return name.endsWith('.jsonl')
-        ? name.slice(0, -'.jsonl'.length)
-        : name || 'unknown';
+    return name.endsWith('.jsonl') ? name.slice(0, -'.jsonl'.length) : name || 'unknown';
 }
 
 /**
@@ -2515,7 +2403,9 @@ export { DERIVED_TOKEN_FIELDS };
 ```
 
 # usage-report.js
+
 Source file: `src/usage-report.js`.
+
 ```javascript
 import { TOKEN_FIELDS } from './constants.js';
 
@@ -2551,16 +2441,10 @@ export function printUsageReport(report) {
  */
 function formatTable(rows) {
     const widths = columnWidths(rows);
-    const header = COLUMNS.map((column) => pad(column, widths[column])).join(
-        '  '
-    );
-    const ruler = COLUMNS.map((column) => '-'.repeat(widths[column])).join(
-        '  '
-    );
+    const header = COLUMNS.map((column) => pad(column, widths[column])).join('  ');
+    const ruler = COLUMNS.map((column) => '-'.repeat(widths[column])).join('  ');
     const body = rows.map((row) =>
-        COLUMNS.map((column) =>
-            pad(String(row[column] ?? ''), widths[column])
-        ).join('  ')
+        COLUMNS.map((column) => pad(String(row[column] ?? ''), widths[column])).join('  ')
     );
 
     return [header, ruler, ...body].join('\n');
@@ -2574,16 +2458,11 @@ function formatTable(rows) {
  */
 function columnWidths(rows) {
     /** @type {Record<string, number>} */
-    const widths = Object.fromEntries(
-        COLUMNS.map((column) => [column, column.length])
-    );
+    const widths = Object.fromEntries(COLUMNS.map((column) => [column, column.length]));
 
     for (const row of rows) {
         for (const column of COLUMNS) {
-            widths[column] = Math.max(
-                widths[column],
-                String(row[column] ?? '').length
-            );
+            widths[column] = Math.max(widths[column], String(row[column] ?? '').length);
         }
     }
 
@@ -2620,7 +2499,9 @@ function printTotals(totals) {
 ```
 
 # usage-runner.js
+
 Source file: `src/usage-runner.js`.
+
 ```javascript
 import { mkdir, writeFile } from 'node:fs/promises';
 
@@ -2657,9 +2538,7 @@ import { buildUsageReport } from './usage-metrics.js';
 export async function runOnce(options) {
     const now = new Date();
     const cutoff = new Date(now.getTime() - options.minutes * 60 * 1000);
-    const outputPath = options.out
-        ? resolveOutputFilePath(options.out, options)
-        : undefined;
+    const outputPath = options.out ? resolveOutputFilePath(options.out, options) : undefined;
     const usageData = await loadUsageData(options.codexHome, cutoff);
     const report = buildUsageReport({
         rows: usageData.rows,
@@ -2847,7 +2726,9 @@ function createKeypressWatcher() {
 ```
 
 # usage-totals.js
+
 Source file: `src/usage-totals.js`.
+
 ```javascript
 import { TOKEN_FIELDS } from './constants.js';
 import { rate } from './usage-metrics.js';
@@ -2868,20 +2749,12 @@ export function buildTotals(rows) {
         for (const field of TOKEN_FIELDS) {
             totals[field] += Number(row[field] ?? 0);
         }
-        totals.effective_input_tokens += Number(
-            row.effective_input_tokens ?? 0
-        );
+        totals.effective_input_tokens += Number(row.effective_input_tokens ?? 0);
         totals.visible_output_tokens += Number(row.visible_output_tokens ?? 0);
     }
 
-    totals.cache_hit_rate = rate(
-        totals.cached_input_tokens,
-        totals.input_tokens
-    );
-    totals.reasoning_output_rate = rate(
-        totals.reasoning_output_tokens,
-        totals.output_tokens
-    );
+    totals.cache_hit_rate = rate(totals.cached_input_tokens, totals.input_tokens);
+    totals.reasoning_output_rate = rate(totals.reasoning_output_tokens, totals.output_tokens);
     return totals;
 }
 ```

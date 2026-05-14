@@ -1,17 +1,35 @@
-import { TOKEN_FIELDS } from './constants.js';
-
 const DEFAULT_TEXT_DATETIME_FORMAT = 'MMM D, h:mm AP';
 const COLUMNS = [
     'timestamp',
-    'model',
-    'intelligence_level',
+    'session_id',
+    'seconds_since_previous',
+    'input_tokens',
+    'cached_input_tokens',
+    'effective_input_tokens',
+    'cache_hit_rate',
+    'output_tokens',
+    'reasoning_output_tokens',
     'observed_token_volume',
-    ...TOKEN_FIELDS,
 ];
 /** @type {Record<string, string>} */
 const FIELD_LABELS = {
     observed_token_volume: 'Total Tokens',
+    session_id: 'Event',
 };
+const INTEGER_FIELDS = new Set([
+    'input_tokens',
+    'cached_input_tokens',
+    'effective_input_tokens',
+    'output_tokens',
+    'reasoning_output_tokens',
+    'observed_token_volume',
+]);
+const RIGHT_ALIGNED_FIELDS = new Set([
+    'session_id',
+    'seconds_since_previous',
+    ...INTEGER_FIELDS,
+    'cache_hit_rate',
+]);
 
 /**
  * Renders the text usage report.
@@ -42,7 +60,7 @@ export function renderTextReport(report, options = {}) {
     if (report.rows.length === 0) {
         lines.push('', 'No token usage events found in the selected window.');
     } else {
-        lines.push('', formatTable(report.rows, datetimeFormat));
+        lines.push('', formatSessionTables(report.rows, datetimeFormat));
     }
 
     return `${lines.join('\n')}\n`;
@@ -135,27 +153,117 @@ function formatSummary(report) {
 }
 
 /**
- * Formats usage rows as a fixed-width terminal table.
+ * Formats usage rows as fixed-width tables grouped by source session file.
  *
  * @param {object[]} rows Usage rows.
  * @param {string} datetimeFormat Date and time display pattern.
- * @returns {string} Table text.
+ * @returns {string} Grouped session table text.
+ */
+function formatSessionTables(rows, datetimeFormat) {
+    return groupRowsBySessionFile(rows)
+        .map(
+            (sessionRows) =>
+                `Session: ${String(sessionRows[0]?.file ?? '')}\n${formatTable(sessionRows, datetimeFormat)}`
+        )
+        .join('\n\n');
+}
+
+/**
+ * Formats one session's usage rows as a fixed-width terminal table.
+ *
+ * @param {object[]} rows Usage rows for one session file.
+ * @param {string} datetimeFormat Date and time display pattern.
+ * @returns {string} Session table text.
  */
 function formatTable(rows, datetimeFormat) {
-    const widths = columnWidths(rows, datetimeFormat);
+    const totalsRow = buildTotalsRow(rows);
+    const tableRows = [...rows, totalsRow];
+    const widths = columnWidths(tableRows, datetimeFormat);
     const header = COLUMNS.map((column) =>
-        pad(displayLabel(column), widths[column])
+        padCell(displayLabel(column), widths[column], column)
     ).join('  ');
     const ruler = COLUMNS.map((column) => '-'.repeat(widths[column])).join(
         '  '
     );
-    const body = rows.map((row) =>
+    const body = tableRows.map((row) =>
         COLUMNS.map((column) =>
-            pad(formatCellValue(row, column, datetimeFormat), widths[column])
+            padCell(
+                formatCellValue(row, column, datetimeFormat),
+                widths[column],
+                column
+            )
         ).join('  ')
     );
 
     return [header, ruler, ...body].join('\n');
+}
+
+/**
+ * Groups rows by source session file and sorts each group by timestamp.
+ *
+ * @param {object[]} rows Usage rows.
+ * @returns {object[][]} Rows grouped by source session file.
+ */
+function groupRowsBySessionFile(rows) {
+    /** @type {Map<string, object[]>} */
+    const groups = new Map();
+
+    for (const row of rows) {
+        const file = String(row.file ?? '');
+        const group = groups.get(file) ?? [];
+        group.push(row);
+        groups.set(file, group);
+    }
+
+    return [...groups.values()]
+        .map((group) =>
+            [...group].sort((first, second) =>
+                String(first.timestamp ?? '').localeCompare(
+                    String(second.timestamp ?? '')
+                )
+            )
+        )
+        .sort((first, second) =>
+            String(first[0]?.timestamp ?? '').localeCompare(
+                String(second[0]?.timestamp ?? '')
+            )
+        );
+}
+
+/**
+ * Builds the totals row for one session detail table.
+ *
+ * @param {object[]} rows Usage rows for one session file.
+ * @returns {object} Display row containing aggregate numeric values.
+ */
+function buildTotalsRow(rows) {
+    const inputTokens = sumField(rows, 'input_tokens');
+    const cachedInputTokens = sumField(rows, 'cached_input_tokens');
+    const outputTokens = sumField(rows, 'output_tokens');
+
+    return {
+        timestamp: 'Totals',
+        session_id: '',
+        seconds_since_previous: sumField(rows, 'seconds_since_previous'),
+        input_tokens: inputTokens,
+        cached_input_tokens: cachedInputTokens,
+        effective_input_tokens: sumField(rows, 'effective_input_tokens'),
+        cache_hit_rate: rate(cachedInputTokens, inputTokens),
+        output_tokens: outputTokens,
+        reasoning_output_tokens: sumField(rows, 'reasoning_output_tokens'),
+        observed_token_volume: sumField(rows, 'observed_token_volume'),
+    };
+}
+
+/**
+ * Sums a numeric field across rows.
+ *
+ * @param {object[]} rows Usage rows.
+ * @param {string} field Numeric field key.
+ * @returns {number} Field total.
+ */
+function sumField(rows, field) {
+    return rows.reduce((total, row) => total + Number(row[field] ?? 0), 0);
 }
 
 /**
@@ -195,20 +303,40 @@ function formatCellValue(row, column, datetimeFormat) {
     const value = row[column];
 
     if (column === 'timestamp') {
+        if (value === 'Totals') {
+            return value;
+        }
         return formatDatetime(value, datetimeFormat);
+    }
+    if (column === 'session_id') {
+        return String(row.turn_index ?? value ?? '');
+    }
+    if (column === 'seconds_since_previous' && value === null) {
+        return '';
+    }
+    if (INTEGER_FIELDS.has(column)) {
+        return formatInteger(Number(value ?? 0));
+    }
+    if (column === 'cache_hit_rate') {
+        return formatPercent(Number(value ?? 0));
     }
 
     return String(value ?? '');
 }
 
 /**
- * Pads a cell for table output.
+ * Pads a cell for table output, right-aligning numeric columns.
  *
  * @param {string} value Cell value.
  * @param {number} width Target cell width.
+ * @param {string} column Field key.
  * @returns {string} Padded cell value.
  */
-function pad(value, width) {
+function padCell(value, width, column) {
+    if (RIGHT_ALIGNED_FIELDS.has(column)) {
+        return value.padStart(width, ' ');
+    }
+
     return value.padEnd(width, ' ');
 }
 
@@ -240,6 +368,21 @@ function formatPercent(value) {
  */
 function formatPercentValue(value) {
     return `${Number(value ?? 0).toFixed(1)}%`;
+}
+
+/**
+ * Computes a guarded rate.
+ *
+ * @param {number} numerator Rate numerator.
+ * @param {number} denominator Rate denominator.
+ * @returns {number} Rate or zero when the denominator is unavailable.
+ */
+function rate(numerator, denominator) {
+    if (!Number.isFinite(denominator) || denominator <= 0) {
+        return 0;
+    }
+
+    return numerator / denominator;
 }
 
 /**

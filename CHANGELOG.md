@@ -3,10 +3,11 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
-## 2026-05-13 / v1.2.1
+## 2026-05-14 / v1.2.1
 
 - Text report Summary output now matches the HTML Summary card order, labels, and values, including Events.
 - Text report date and time output now follows `DATETIME_FORMAT`, and text report field labels now use display labels instead of field IDs.
+- Text report event details are now grouped by full session file path and include per-session Totals rows.
 
 ## 2026-05-13 / v1.2.0
 
