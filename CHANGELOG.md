@@ -3,6 +3,12 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+## 2026-05-13 / v1.2.0
+
+- This is an roll-up of all 1.1.x changes. The focus has been entirely focused on making the HTML report immediately useful, much better organized, easier to understand.
+- Added new screenshots.
+- Added TL;DR to README
+
 ### 2026-05-13 / v1.1.4
 
 - HTML reports now show a sortable Sessions table with session aggregate rows and expandable event detail rows.
@@ -36,7 +42,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 - Models and Events tables use user-friendly column headers and fit columns to the available report width.
 - Top Events cards display the session on its own line above the event metric columns.
 
-### 2026-05-11 / v1.1.0
+## 2026-05-11 / v1.1.0
 
 Summary: This is a roll-up from 1.0.x.
 

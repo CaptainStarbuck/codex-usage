@@ -1,4 +1,29 @@
-# codex-usage v1.1.3
+# Codex Usage v1.2.0
+
+## TL;DR
+
+This is a utility for developers who use Codex, to see token usage and available quotas.
+
+`node src/codex-usage.js --format html --out report.html --interval 5 --force-refresh --style dark --minutes 30`
+
+That command generates /tmp/report.html or C:\temp\report.html. Screenshots are below. Open that in your browser and watch the report show your token usage live.  
+(_press any key and wait an interval for it to stop_)
+
+CLI users: a subset of that outputs to the TUI.
+
+Docs here are extensive. Please read the docs.  
+Discuss issues and desires with @CaptainStarbuck and others in the [Discord OpenAI server](https://discord.gg/openai) Channel #codex-discussions -  
+and/or create Issues for changes, fixes, and enhancements in https://github.com/CaptainStarbuck/codex-usage/issues.
+
+**The HTML report shows**
+
+- Input tokens, minus Cache, equals Effective Input Tokens.
+- Output tokens and Reasoning Output Tokens
+- The same data broken down by models, sessions/threads, and events within each thread.
+
+More is on the way, including details to see what instructions are being processed, graphing data in different ways, and exporting more data for your own processing.
+
+---
 
 ## What This Project Does
 
@@ -32,9 +57,16 @@ The report includes:
 
 ![screenshot-01-tui-html](docs/screenshot-01-tui.png)
 
-### HTML Screenshot
+### HTML Screenshot (dark)
 
-![screenshot-02-html](docs/screenshot-02-html.png)
+![HTML Dark Theme](docs/screenshot-02-html-dark.png)
+
+<details>
+<summary>Click to see the light version</summary>
+
+![HTML Light Theme](docs/screenshot-02-html-light.png)
+
+</details>
 
 ## How To Use It
 
@@ -108,12 +140,6 @@ codex-usage
 ```
 
 Remove the link later with `npm unlink --global codex-usage`.
-
-## Work In Progress
-
-This is a new project and not used by many people yet.  
-Please discuss issues with @CaptainStarbuck in Discord OpenAI server, (https://discord.gg/openai) Channel #codex-discussions -  
-and/or create Issues for changes, fixes, and enhancements in https://github.com/CaptainStarbuck/codex-usage/issues.
 
 ## License
 
