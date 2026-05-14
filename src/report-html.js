@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const HTML_SOURCE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'html');
 const BASE_TEMPLATE_PATH = join(HTML_SOURCE_DIR, 'base.html');
+const COMMON_STYLES_PATH = join(HTML_SOURCE_DIR, 'styles-common.css');
 const REPORT_SCRIPT_PATH = join(HTML_SOURCE_DIR, 'report.js');
 
 /**
@@ -23,7 +24,7 @@ const REPORT_SCRIPT_PATH = join(HTML_SOURCE_DIR, 'report.js');
 export function renderHtmlReport(report, options) {
     const htmlReport = applyHtmlMetadata(report, options);
     const replacements = new Map([
-        ['styles.css', readHtmlSourceFile(options.stylesPath)],
+        ['styles.css', readHtmlStyles(options.stylesPath)],
         ['report.json', escapeScriptJson(htmlReport)],
         ['report.js', readHtmlSourceFile(REPORT_SCRIPT_PATH)],
     ]);
@@ -32,6 +33,19 @@ export function renderHtmlReport(report, options) {
         readHtmlSourceFile(BASE_TEMPLATE_PATH),
         replacements
     );
+}
+
+/**
+ * Reads the selected theme CSS followed by common report CSS.
+ *
+ * @param {string} stylesPath Selected HTML report theme stylesheet path.
+ * @returns {string} Combined stylesheet contents.
+ */
+function readHtmlStyles(stylesPath) {
+    return [
+        readHtmlSourceFile(stylesPath),
+        readHtmlSourceFile(COMMON_STYLES_PATH),
+    ].join('\n\n');
 }
 
 /**

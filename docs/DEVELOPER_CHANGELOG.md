@@ -6,6 +6,7 @@ These are details about other changes, and trivial details that don't warrant a 
 
 - Changed the HTML Events table renderer to build session summary groups in the browser and render nested event detail tables per session.
 - Changed the HTML Models expansion renderer to reuse session grouping for model-filtered nested Sessions and Events tables.
+- Split shared HTML report styles into `styles-common.css`, left theme files for color variables, and removed the redundant `styles.css`.
 
 ### 2026-05-13 / v1.1.3
 
