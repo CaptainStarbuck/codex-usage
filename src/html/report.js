@@ -33,6 +33,7 @@ const tableColumnLabels = {
 const sessionGroupColumnLabels = {
     ...tableColumnLabels,
     timestamp: 'Started',
+    model: 'Models',
 };
 /** @type {Record<string, string>} */
 const sessionGroupEventColumnLabels = {
@@ -52,13 +53,18 @@ const sessionGroupEventColumns = [
     'model',
     ...tokenDisplayColumns,
 ];
-const modelGroupColumns = ['model', 'event_count', ...tokenDisplayColumns];
-const modelGroupEventColumns = [
+const modelSessionGroupColumns = [
+    'timestamp',
+    'session_id',
+    ...tokenDisplayColumns,
+];
+const modelSessionGroupEventColumns = [
     'timestamp',
     'session_id',
     'seconds_since_previous',
     ...tokenDisplayColumns,
 ];
+const modelGroupColumns = ['model', 'event_count', ...tokenDisplayColumns];
 const datetimeFormat = report.metadata?.datetime_format || 'MMM D, h:mm AP';
 const refreshSeconds = Number(report.metadata?.refresh_seconds || 0);
 const eventTableState = readEventTableState();
@@ -928,9 +934,9 @@ function eventTableStateKey() {
 }
 
 /**
- * Reads persisted By Model expansion state for the current report file.
+ * Reads persisted Models expansion state for the current report file.
  *
- * @returns {{ expanded: string[] }} Table state.
+ * @returns {{ expanded: string[], expandedSessions: string[] }} Table state.
  */
 function readModelGroupsTableState() {
     try {
@@ -942,18 +948,24 @@ function readModelGroupsTableState() {
             expanded: Array.isArray(state.expanded)
                 ? state.expanded.filter((key) => typeof key === 'string')
                 : [],
+            expandedSessions: Array.isArray(state.expandedSessions)
+                ? state.expandedSessions.filter(
+                      (key) => typeof key === 'string'
+                  )
+                : [],
         };
     } catch {
         return {
             expanded: [],
+            expandedSessions: [],
         };
     }
 }
 
 /**
- * Persists By Model expansion state when browser storage is available.
+ * Persists Models expansion state when browser storage is available.
  *
- * @param {{ expanded: string[] }} state Table state.
+ * @param {{ expanded: string[], expandedSessions?: string[] }} state Table state.
  * @returns {void}
  */
 function writeModelGroupsTableState(state) {
@@ -993,7 +1005,7 @@ function sessionGroupRowKey(row) {
 }
 
 /**
- * Builds a stable identity for a By Model group across generated page reloads.
+ * Builds a stable identity for a Models group across generated page reloads.
  *
  * @param {object} row Model group row.
  * @returns {string} Model group identity.
@@ -1002,6 +1014,17 @@ function modelGroupRowKey(row) {
     return [row.raw_model, row.intelligence_level]
         .map((value) => String(value ?? 'unknown'))
         .join('|');
+}
+
+/**
+ * Builds a stable identity for a model-filtered session row.
+ *
+ * @param {string} modelKey Parent model group identity.
+ * @param {object} sessionGroup Session group row.
+ * @returns {string} Model-filtered session identity.
+ */
+function modelSessionGroupRowKey(modelKey, sessionGroup) {
+    return [modelKey, sessionGroupRowKey(sessionGroup)].join('|');
 }
 
 /**
@@ -1141,6 +1164,10 @@ function renderSessionGroupsTable(id, rows) {
                     renderSessionGroupRow(
                         group,
                         index,
+                        sessionGroupColumns,
+                        sessionGroupEventColumns,
+                        'session-group-',
+                        sessionGroupRowKey(group),
                         expandedRows.has(sessionGroupRowKey(group))
                     )
                 )
@@ -1258,12 +1285,24 @@ function summarizeModelDisplay(rows) {
  *
  * @param {object} group Session group summary row.
  * @param {number} index Row index.
+ * @param {string[]} columns Visible session summary columns.
+ * @param {string[]} eventColumns Visible event detail columns.
+ * @param {string} detailPrefix Prefix for detail row ids.
+ * @param {string} groupKey Stable row identity for persistence.
  * @param {boolean} expanded Whether the row should render expanded.
  * @returns {string} Table row markup.
  */
-function renderSessionGroupRow(group, index, expanded = false) {
-    const detailId = 'session-group-' + index;
-    const cells = sessionGroupColumns
+function renderSessionGroupRow(
+    group,
+    index,
+    columns,
+    eventColumns,
+    detailPrefix,
+    groupKey,
+    expanded = false
+) {
+    const detailId = detailPrefix + index;
+    const cells = columns
         .map(
             (column) =>
                 '<td class="' +
@@ -1280,7 +1319,7 @@ function renderSessionGroupRow(group, index, expanded = false) {
         '" data-detail="' +
         detailId +
         '" data-group-key="' +
-        html(sessionGroupRowKey(group)) +
+        html(groupKey) +
         '">' +
         (expanded ? '-' : '+') +
         '</button></td>' +
@@ -1290,9 +1329,9 @@ function renderSessionGroupRow(group, index, expanded = false) {
         '"' +
         (expanded ? '' : ' hidden') +
         '><td colspan="' +
-        (sessionGroupColumns.length + 1) +
+        (columns.length + 1) +
         '">' +
-        renderSessionGroupEventsTable(group.events || []) +
+        renderSessionGroupEventsTable(group.events || [], eventColumns) +
         '</td></tr>'
     );
 }
@@ -1301,12 +1340,13 @@ function renderSessionGroupRow(group, index, expanded = false) {
  * Renders the event detail rows nested under a session.
  *
  * @param {object[]} rows Event rows for one session.
+ * @param {string[]} columns Visible event detail columns.
  * @returns {string} Nested event table markup.
  */
-function renderSessionGroupEventsTable(rows) {
+function renderSessionGroupEventsTable(rows, columns) {
     const head =
         '<thead><tr>' +
-        sessionGroupEventColumns
+        columns
             .map(
                 (column) =>
                     '<th class="' +
@@ -1323,7 +1363,7 @@ function renderSessionGroupEventsTable(rows) {
             .map(
                 (row) =>
                     '<tr>' +
-                    sessionGroupEventColumns
+                    columns
                         .map(
                             (column) =>
                                 '<td class="' +
@@ -1340,7 +1380,7 @@ function renderSessionGroupEventsTable(rows) {
 
     return (
         '<table class="nested-events-table">' +
-        renderColumnGroup(sessionGroupEventColumns) +
+        renderColumnGroup(columns) +
         head +
         body +
         '</table>'
@@ -1379,6 +1419,7 @@ function renderModelGroupsTable(id, rows) {
     }
 
     const expandedRows = new Set(modelGroupsTableState.expanded);
+    const expandedSessionRows = new Set(modelGroupsTableState.expandedSessions);
     const head =
         '<thead><tr><th></th>' +
         modelGroupColumns
@@ -1399,6 +1440,7 @@ function renderModelGroupsTable(id, rows) {
                 renderModelGroupRow(
                     group,
                     index,
+                    expandedSessionRows,
                     expandedRows.has(modelGroupRowKey(group))
                 )
             )
@@ -1423,6 +1465,26 @@ function renderModelGroupsTable(id, rows) {
                 expandedRows.add(groupKey);
             }
             modelGroupsTableState.expanded = [...expandedRows];
+            writeModelGroupsTableState(modelGroupsTableState);
+        });
+    });
+    table.querySelectorAll('.model-session-group-toggle').forEach((button) => {
+        button.addEventListener('click', () => {
+            const detailRow = table.querySelector(
+                '[data-detail-row="' + button.dataset.detail + '"]'
+            );
+            const expanded = button.getAttribute('aria-expanded') === 'true';
+            const groupKey = button.dataset.groupKey || '';
+
+            button.setAttribute('aria-expanded', String(!expanded));
+            button.textContent = expanded ? '+' : '-';
+            detailRow.hidden = expanded;
+            if (expanded) {
+                expandedSessionRows.delete(groupKey);
+            } else {
+                expandedSessionRows.add(groupKey);
+            }
+            modelGroupsTableState.expandedSessions = [...expandedSessionRows];
             writeModelGroupsTableState(modelGroupsTableState);
         });
     });
@@ -1565,10 +1627,16 @@ function intelligenceLevelOrder(level) {
  *
  * @param {object} group Model group summary row.
  * @param {number} index Row index.
+ * @param {Set<string>} expandedSessionRows Expanded nested session identities.
  * @param {boolean} expanded Whether the row should render expanded.
  * @returns {string} Table row markup.
  */
-function renderModelGroupRow(group, index, expanded = false) {
+function renderModelGroupRow(
+    group,
+    index,
+    expandedSessionRows,
+    expanded = false
+) {
     const detailId = 'model-group-' + index;
     const cells = modelGroupColumns
         .map(
@@ -1599,58 +1667,101 @@ function renderModelGroupRow(group, index, expanded = false) {
         '><td colspan="' +
         (modelGroupColumns.length + 1) +
         '">' +
-        renderModelGroupEventsTable(group.events || []) +
+        renderModelGroupSessionsTable(
+            group.events || [],
+            index,
+            modelGroupRowKey(group),
+            expandedSessionRows
+        ) +
         '</td></tr>'
     );
 }
 
 /**
- * Renders the events nested under a model group.
+ * Renders model-filtered sessions nested under a model group.
  *
  * @param {object[]} rows Event rows for one model and intelligence level.
- * @returns {string} Nested event table markup.
+ * @param {number} modelIndex Parent model row index.
+ * @param {string} modelKey Parent model group identity.
+ * @param {Set<string>} expandedSessionRows Expanded nested session identities.
+ * @returns {string} Nested session table markup.
  */
-function renderModelGroupEventsTable(rows) {
+function renderModelGroupSessionsTable(
+    rows,
+    modelIndex,
+    modelKey,
+    expandedSessionRows
+) {
+    const groups = buildSessionGroups(rows);
     const head =
         '<thead><tr>' +
-        modelGroupEventColumns
+        '<th></th>' +
+        modelSessionGroupColumns
             .map(
                 (column) =>
                     '<th class="' +
                     html(columnClasses(column)) +
                     '">' +
-                    columnLabelHtml(column, tableColumnLabels) +
+                    columnLabelHtml(column, sessionGroupColumnLabels) +
                     '</th>'
             )
             .join('') +
         '</tr></thead>';
     const body =
         '<tbody>' +
-        rows
-            .map(
-                (row) =>
-                    '<tr>' +
-                    modelGroupEventColumns
-                        .map(
-                            (column) =>
-                                '<td class="' +
-                                html(columnClasses(column)) +
-                                '">' +
-                                html(displayCell(row, column)) +
-                                '</td>'
-                        )
-                        .join('') +
-                    '</tr>'
+        groups
+            .map((group, sessionIndex) =>
+                renderModelSessionGroupRow(
+                    group,
+                    modelIndex,
+                    sessionIndex,
+                    modelKey,
+                    expandedSessionRows
+                )
             )
             .join('') +
         '</tbody>';
 
     return (
         '<table class="nested-events-table">' +
-        renderColumnGroup(modelGroupEventColumns) +
+        renderColumnGroup(modelSessionGroupColumns, true) +
         head +
         body +
         '</table>'
+    );
+}
+
+/**
+ * Renders one model-filtered session summary row.
+ *
+ * @param {object} group Session group summary row.
+ * @param {number} modelIndex Parent model row index.
+ * @param {number} sessionIndex Session row index within the parent model.
+ * @param {string} modelKey Parent model group identity.
+ * @param {Set<string>} expandedSessionRows Expanded nested session identities.
+ * @returns {string} Table row markup.
+ */
+function renderModelSessionGroupRow(
+    group,
+    modelIndex,
+    sessionIndex,
+    modelKey,
+    expandedSessionRows
+) {
+    const groupKey = modelSessionGroupRowKey(modelKey, group);
+    const rowMarkup = renderSessionGroupRow(
+        group,
+        sessionIndex,
+        modelSessionGroupColumns,
+        modelSessionGroupEventColumns,
+        'model-' + modelIndex + '-session-group-',
+        groupKey,
+        expandedSessionRows.has(groupKey)
+    );
+
+    return rowMarkup.replace(
+        'session-group-toggle',
+        'session-group-toggle model-session-group-toggle'
     );
 }
 
