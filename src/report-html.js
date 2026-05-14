@@ -4,26 +4,28 @@ import { fileURLToPath } from 'node:url';
 
 const HTML_SOURCE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'html');
 const BASE_TEMPLATE_PATH = join(HTML_SOURCE_DIR, 'base.html');
+const COMMON_STYLES_PATH = join(HTML_SOURCE_DIR, 'styles-common.css');
 const REPORT_SCRIPT_PATH = join(HTML_SOURCE_DIR, 'report.js');
-const STYLES_PATH = join(HTML_SOURCE_DIR, 'styles.css');
 
 /**
  * @typedef {object} HtmlRenderOptions
+ * @property {string} datetimeFormat HTML report datetime display format.
  * @property {number | undefined} refreshSeconds Optional page refresh delay in seconds.
+ * @property {string} stylesPath HTML report stylesheet path.
  */
 
 /**
  * Renders a standalone static HTML usage dashboard.
  *
  * @param {object} report Structured usage report.
- * @param {HtmlRenderOptions} [options] HTML rendering options.
+ * @param {HtmlRenderOptions} options HTML rendering options.
  * @returns {string} HTML document.
  */
-export function renderHtmlReport(report, options = {}) {
+export function renderHtmlReport(report, options) {
+    const htmlReport = applyHtmlMetadata(report, options);
     const replacements = new Map([
-        ['refresh.script', renderRefreshScript(options.refreshSeconds)],
-        ['styles.css', readHtmlSourceFile(STYLES_PATH)],
-        ['report.json', escapeScriptJson(report)],
+        ['styles.css', readHtmlStyles(options.stylesPath)],
+        ['report.json', escapeScriptJson(htmlReport)],
         ['report.js', readHtmlSourceFile(REPORT_SCRIPT_PATH)],
     ]);
 
@@ -31,6 +33,41 @@ export function renderHtmlReport(report, options = {}) {
         readHtmlSourceFile(BASE_TEMPLATE_PATH),
         replacements
     );
+}
+
+/**
+ * Reads the selected theme CSS followed by common report CSS.
+ *
+ * @param {string} stylesPath Selected HTML report theme stylesheet path.
+ * @returns {string} Combined stylesheet contents.
+ */
+function readHtmlStyles(stylesPath) {
+    return [
+        readHtmlSourceFile(stylesPath),
+        readHtmlSourceFile(COMMON_STYLES_PATH),
+    ].join('\n\n');
+}
+
+/**
+ * Adds HTML-only display settings without mutating the structured report.
+ *
+ * @param {object} report Structured usage report.
+ * @param {HtmlRenderOptions} options HTML rendering options.
+ * @returns {object} Report copy with HTML display metadata.
+ */
+function applyHtmlMetadata(report, options) {
+    return {
+        ...report,
+        metadata: {
+            ...report.metadata,
+            datetime_format: options.datetimeFormat,
+            refresh_seconds:
+                Number.isFinite(options.refreshSeconds) &&
+                options.refreshSeconds >= 1
+                    ? Math.round(options.refreshSeconds)
+                    : undefined,
+        },
+    };
 }
 
 /**
@@ -72,24 +109,6 @@ function replaceTemplateStubLine(line, replacements) {
     }
 
     return line;
-}
-
-/**
- * Renders a browser refresh script when interval HTML output requests it.
- *
- * @param {number | undefined} refreshSeconds Page refresh delay in seconds.
- * @returns {string} Script markup or an empty string.
- */
-function renderRefreshScript(refreshSeconds) {
-    if (!Number.isFinite(refreshSeconds) || refreshSeconds < 1) {
-        return '';
-    }
-
-    return `<script>
-    window.setTimeout(() => {
-      window.location.reload();
-    }, ${Math.round(refreshSeconds)} * 1000);
-  </script>`;
 }
 
 /**

@@ -81,6 +81,16 @@ export function resolveConfiguredFileDestination(filePath, defaultFolder) {
 }
 
 /**
+ * Checks whether a configured path is only a filename with no folder path.
+ *
+ * @param {string} filePath Path to inspect.
+ * @returns {boolean} True when the value contains no directory component.
+ */
+export function isConfiguredFilenameOnly(filePath) {
+    return !/[\\/]/u.test(filePath) && !WINDOWS_VOLUME_PATTERN.test(filePath);
+}
+
+/**
  * Resolves a path using native semantics or Windows semantics for Windows-style input.
  *
  * @param {string} filePath Path to resolve.
@@ -132,16 +142,6 @@ export function normalizeConfiguredOutputPathForPlatform(
     }
 
     return outputPath;
-}
-
-/**
- * Checks whether a configured path is only a filename with no folder path.
- *
- * @param {string} filePath Path to inspect.
- * @returns {boolean} True when the value contains no directory component.
- */
-function isConfiguredFilenameOnly(filePath) {
-    return !/[\\/]/u.test(filePath) && !WINDOWS_VOLUME_PATTERN.test(filePath);
 }
 
 /**

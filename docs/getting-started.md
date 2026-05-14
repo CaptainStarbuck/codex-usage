@@ -14,22 +14,14 @@ The direct CLI entry point uses only Node.js built-in modules.
 
 ## Configuration
 
-The command creates `.env` from `.env.example` when `.env` is not present. Set local folder preferences in `.env`:
+The command creates `.env` from `.env.example` when `.env` is not present. The main settings are:
 
-```bash
-DATA_PATH=/tmp/codex-usage
-DATA_PATH_WINDOWS_DEFAULT=C:\Temp\codex-usage
-CODEX_HOME=
-```
+- `DATA_PATH` for app-managed output and history files.
+- `CODEX_HOME` for the Codex session folder to scan.
+- `STYLES` for the HTML report stylesheet.
+- `DATETIME_FORMAT` for HTML report date and time labels.
 
-Output and history filenames use `DATA_PATH` when no folder path is included. The configured `DATA_PATH` folder is created when the command starts. When `.env` is created on Windows, `DATA_PATH_WINDOWS_DEFAULT` is copied to `DATA_PATH` so the default data folder is `C:\Temp\codex-usage`. Codex sessions are read from the current user's `.codex` folder when `CODEX_HOME` is empty. When `CODEX_HOME` is set to a folder that does not include `.codex`, the command appends `.codex`. Use `--data-path` or `--codex-home` to override these settings for a single run.
-
-Windows drive paths can be used in `.env`. Quote paths that contain spaces:
-
-```bash
-DATA_PATH="C:\Users\example\Codex Usage"
-CODEX_HOME="C:\Users\example"
-```
+Use `--data-path`, `--codex-home`, or `--styles` to override local settings for a single run. See [cli-reference.md](./cli-reference.md) for defaults, path rules, and validation. See [datetime.md](./datetime.md) for date and time tokens.
 
 ## First Run
 
@@ -60,14 +52,14 @@ node src/codex-usage.js --format text
 node src/codex-usage.js --format json
 ```
 
-HTML output writes a standalone browser dashboard when used with `--out`. A filename-only value is written under `DATA_PATH`; use `./filename` to write to the current folder:
+HTML output writes a standalone browser dashboard when used with `--out`. A filename-only value is written under `DATA_PATH`; use `./filename` to write to the current folder. HTML report styling is selected from the configured stylesheet:
 
 ```bash
 node src/codex-usage.js --format html --out codex-usage.html
 node src/codex-usage.js --format html --out ./codex-usage.html
 ```
 
-Open the generated HTML file in a browser to review quota cards, summary cards, warnings, timeline, top sessions, top events, model summaries, and the sortable Events table.
+Open the generated HTML file in a browser to review quota cards, summary cards, warnings, timelines, model summaries, and the sortable Sessions table with expandable event details.
 
 ## Keep A Browser Report Current
 

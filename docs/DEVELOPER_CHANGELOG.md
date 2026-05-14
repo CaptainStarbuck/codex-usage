@@ -2,6 +2,54 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
+### 2026-05-13 / v1.1.4
+
+- Changed the HTML Events table renderer to build session summary groups in the browser and render nested event detail tables per session.
+- Changed the HTML Models expansion renderer to reuse session grouping for model-filtered nested Sessions and Events tables.
+- Split shared HTML report styles into `styles-common.css`, left theme files for color variables, and removed the redundant `styles.css`.
+
+### 2026-05-13 / v1.1.3
+
+- Added force-refresh metadata to the embedded HTML report model and moved browser reload scheduling into `src/html/report.js`.
+- Added an unlabeled right-aligned HTML report control panel and matching styles across the default, light, and dark stylesheets.
+- Changed timeline SVG title generation to join tooltip lines with actual newline characters.
+- Added shared HTML token column ordering and label overrides for Summary, By Model, and Events displays.
+- Added table-only header label line breaks and narrower token column widths across the default, light, and dark HTML stylesheets.
+- Added Summary grid break markers after the Input and Output card groups.
+- Added a reusable HTML token timeline renderer and a second output-only timeline card.
+
+### 2026-05-13 / v1.1.2
+
+#### Changed
+
+- Changed the HTML Models section to render as By Model, grouping browser-side report rows by model and intelligence level.
+- Added nested event tables under each By Model group and omitted repeated model and intelligence columns from the nested rows.
+- Added nested table styling across the default, light, and dark HTML stylesheets.
+- Added browser localStorage persistence for By Model expanded row state.
+- Updated analytics and implementation docs for the By Model report layout.
+- Added browser-side session reference formatting and a Session Paths card to keep full source file paths available in HTML reports.
+- Added reusable HTML table column classes and column sizing hints for numeric header alignment, compact Turn Index display, and combined Events model and intelligence values.
+- Reduced duplicated report reference content in `docs/details.md` and routed detailed report behavior to `docs/analytics-report.md`.
+- Reduced duplicated configuration reference content in `docs/getting-started.md` and routed detailed option behavior to the CLI and datetime docs.
+- Temporarily commented out the HTML Top Sessions and Top Events dashboard markup and render calls.
+- Removed Raw Total Tokens from the By Model summary columns, moved Input Tokens into Events table main rows, relabeled observed event volume as Total Tokens in Events, and reduced Events detail rows to a Detail header.
+- Removed the Sessions column from collapsed By Model rows and added compact `hash/turn` formatting for event Session columns.
+- Removed the dedicated Turn Index column from Events and expanded By Model event tables while retaining turn index in compact Session values.
+- Moved the HTML Warnings and Insights placeholder below the Session Paths section.
+
+### 2026-05-12 / v1.1.1
+
+#### Enhanced
+
+- Added HTML stylesheet selection through `STYLES`, `--styles`, and the `--style` synonym.
+- Added stylesheet path resolution for aliases, extensionless filenames, `src/html` filename defaults, direct paths, OS path validation, and read-access errors.
+- Added `src/html/styles-light-01.css` and `src/html/styles-dark-01.css` as selectable report styles.
+
+#### Changed
+
+- Routed HTML rendering through a runtime `stylesPath` option instead of reading one fixed stylesheet in the renderer.
+- Changed Models and Events table headers to common-cased field labels and adjusted report table layout to size columns against available panel width.
+
 ### 2026-05-11 / v1.0.5
 
 #### Enhanced

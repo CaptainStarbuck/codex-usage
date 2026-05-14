@@ -42,13 +42,17 @@ The report uses raw numeric fields in structured data and leaves rounding to ren
 
 ## HTML Report
 
-The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains quota cards, summary cards, a stacked token timeline, warnings and notices, top sessions, top events, model summaries, and a sortable event table.
+The HTML report is a standalone static dashboard. It embeds the structured report JSON in a `script` tag, uses local CSS and JavaScript, and opens directly from the filesystem. The dashboard contains an optional refresh control panel, quota cards, summary cards, stacked token timelines, a Models table with session and event drill-downs, a sortable Sessions table with expandable event details, a session path reference card, and warnings and notices at the bottom.
 
 The timeline uses inline SVG and stacks cached input, effective input, output, and reasoning output tokens. Browser titles on timeline bars include timestamp or bucket, session id, model, intelligence level, token values, and cache hit rate.
 
-The event table keeps the default visible columns focused on timestamp, session metadata, observed token volume, effective input tokens, cached input tokens, cache hit rate, output tokens, and reasoning output tokens. Raw totals, visible output, reasoning rate, input tokens, and source file path are available in expandable detail rows.
+The Output Token Timeline uses the same bucket timing as the main timeline, but only stacks output tokens and reasoning output tokens. Its vertical scale is based on output-token values instead of mixed input and output volume.
 
-Expanded rows and the active sort order are stored in browser `localStorage`, scoped to the report file path, Codex home, and report window length. This keeps the Events table stable across browser refreshes when regenerated reports still contain the same event rows.
+The Models table groups event rows by model and intelligence level. Each summary row displays the model and level together in the Model column, sorted by model name and then `low`, `medium`, `high`, and `xhigh`. Collapsed summary rows use the same token column order and labels as the Sessions table, starting with Input Tokens. Expanding a model row shows a Sessions table that contains only events for that model and intelligence level. The nested Sessions table omits the Model column, aggregates token data for matching events in each session, and expands to show a nested Events table that also omits the Model column. Expanded Models rows are stored in browser `localStorage`, scoped to the report file path, Codex home, and report window length.
+
+The Summary cards are grouped into rows for input, output, and totals. The Summary cards and Sessions table keep token displays in the order Input Tokens, Cached Input Tokens, Effective Input Tokens, Cache Hit Rate, Output Tokens, Reasoning Output Tokens, and Total Tokens. The main Sessions table includes one collapsed row per session. Its Started column displays the timestamp for event index 1, its Session column displays only the compact session hash, its Models column can list multiple `model/intelligence` values, and its token columns display aggregate totals for that session. Expanding a session row shows the event detail table with the same event fields as before, except the Session column is labeled Event and displays only the event index. Numeric column headers and values are right-aligned. Full session file paths appear in the Session Paths card at the bottom of the report.
+
+Expanded rows and the active sort order are stored in browser `localStorage`, scoped to the report file path, Codex home, and report window length. This keeps the Sessions table stable across browser refreshes when regenerated reports still contain the same session rows.
 
 ## Text And JSON Reports
 
@@ -74,11 +78,11 @@ Insights call attention to notable report conditions:
 
 `--interval <seconds>` requires `--out` and repeatedly regenerates the selected output format. The first report is written immediately. Subsequent runs occur after each configured interval unless terminal input has requested shutdown. A keypress on the terminal stops the loop at the next interval boundary.
 
-For HTML interval output, `--force-refresh` embeds a page reload timer at `interval - 2` seconds. This lets a browser tab opened from the output file keep itself near the command's regenerated report cadence.
+For HTML interval output, `--force-refresh` embeds a page reload timer at `interval - 2` seconds. This lets a browser tab opened from the output file keep itself near the command's regenerated report cadence. Force-refresh reports include a right-aligned Refresh button above the report content. The button toggles browser auto-refresh off and on so the current page can stay unchanged while the CLI continues regenerating the output file.
 
 ## CLI Options
 
-The command supports `--minutes`, `--codex-home`, `--data-path`, `--format`, `--out`, `--interval`, `--force-refresh`, `--save-history`, `--history`, `--help`, and `-h`. Windows paths are supported for folder and file options. [cli-reference.md](./cli-reference.md) contains defaults, constraints, and examples.
+The command supports `--minutes`, `--codex-home`, `--data-path`, `--format`, `--out`, `--styles`, `--style`, `--interval`, `--force-refresh`, `--save-history`, `--history`, `--help`, and `-h`. Windows paths are supported for folder and file options. [cli-reference.md](./cli-reference.md) contains defaults, constraints, and examples.
 
 ## History
 

@@ -48,5 +48,11 @@ export default {
                 proseWrap: 'preserve',
             },
         },
+        {
+            files: '*.jsonl',
+            options: {
+                parser: 'json',
+            },
+        },
     ],
 };

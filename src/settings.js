@@ -7,6 +7,8 @@ import {
     DATA_PATH_WINDOWS_DEFAULT,
     DEFAULT_CODEX_HOME,
     DEFAULT_DATA_PATH,
+    DEFAULT_DATETIME_FORMAT,
+    DEFAULT_STYLES_FILE_NAME,
 } from './constants.js';
 import { hasConfiguredPathSegment, joinConfiguredPath } from './path-utils.js';
 
@@ -16,6 +18,8 @@ const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
  * @typedef {object} AppEnvironment
  * @property {string} codexHome Codex home folder to scan.
  * @property {string} dataPath Root folder used for app-managed data files.
+ * @property {string} datetimeFormat HTML report datetime display format.
+ * @property {string} styles HTML report stylesheet selection.
  */
 
 /**
@@ -31,10 +35,18 @@ export async function readAppEnvironment(processEnv = process.env) {
     );
     const dataPath =
         readSettingValue('DATA_PATH', fileEnv, processEnv) ?? DEFAULT_DATA_PATH;
+    const datetimeFormat =
+        readSettingValue('DATETIME_FORMAT', fileEnv, processEnv) ??
+        DEFAULT_DATETIME_FORMAT;
+    const styles =
+        readSettingValue('STYLES', fileEnv, processEnv) ??
+        DEFAULT_STYLES_FILE_NAME;
 
     return {
         codexHome,
         dataPath,
+        datetimeFormat,
+        styles,
     };
 }
 

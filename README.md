@@ -1,4 +1,29 @@
-# codex-usage v1.1.0
+# Codex Usage v1.2.0
+
+## TL;DR
+
+This is a utility for developers who use Codex, to see token usage and available quotas.
+
+`node src/codex-usage.js --format html --out report.html --interval 5 --force-refresh --style dark --minutes 30`
+
+That command generates /tmp/report.html or C:\temp\report.html. Screenshots are below. Open that in your browser and watch the report show your token usage live.  
+(_press any key and wait an interval for it to stop_)
+
+CLI users: a subset of that outputs to the TUI.
+
+Docs here are extensive. Please read the docs.  
+Discuss issues and desires with @CaptainStarbuck and others in the [Discord OpenAI server](https://discord.gg/openai) Channel #codex-discussions -  
+and/or create Issues for changes, fixes, and enhancements in https://github.com/CaptainStarbuck/codex-usage/issues.
+
+**The HTML report shows**
+
+- Input tokens, minus Cache, equals Effective Input Tokens.
+- Output tokens and Reasoning Output Tokens
+- The same data broken down by models, sessions/threads, and events within each thread.
+
+More is on the way, including details to see what instructions are being processed, graphing data in different ways, and exporting more data for your own processing.
+
+---
 
 ## What This Project Does
 
@@ -22,18 +47,26 @@ The report includes:
 - A window summary for the selected rolling time range.
 - Token totals for input, cached input, effective input, output, reasoning output, and observed token volume.
 - Account quota cards when Codex rate limit snapshots are available.
-- Session, model, and event summaries.
+- Session, model-level, and event summaries.
 - Warnings and notices for notable usage patterns.
-- A sortable event table in the HTML report, with expandable details.
+- A sortable Sessions table in the HTML report, with expandable event details.
+- Dynamic HTML report styling, currently with two available files, one light and one dark.
 - Optional compact JSONL history snapshots for local trend storage.
 
 ### TUI Screenshot
 
 ![screenshot-01-tui-html](docs/screenshot-01-tui.png)
 
-### HTML Screenshot
+### HTML Screenshot (dark)
 
-![screenshot-02-html](docs/screenshot-02-html.png)
+![HTML Dark Theme](docs/screenshot-02-html-dark.png)
+
+<details>
+<summary>Click to see the light version</summary>
+
+![HTML Light Theme](docs/screenshot-02-html-light.png)
+
+</details>
 
 ## How To Use It
 
@@ -53,23 +86,29 @@ Options include:
 - Send data to a custom folder
 - Render plain text, JSON, or standalone HTML
 - Only include data from the previous N minutes
-- Regenerate the browser report every 10 seconds and make the open page refresh itself
+- Regenerate the browser report every 10 seconds, make the open page refresh itself, and pause or resume browser refreshes from the page
 - Maintain a compact local history snapshot of processed data
+
+The repository includes `src/utils/jsonl2json.js` as a convenience utility for converting Codex session JSONL files to formatted JSON. See [docs/jsonl2json.md](./docs/jsonl2json.md).
 
 ## .env **_New in v1.1_**
 
-Override default folders and settings in `.env`, now created for you. Check updates for changes in `.env.example`.
+Override default folders and settings in `.env`, which is created for you. Review `.env.example` for available values.
 
 ## Data folders
 
 Data is written by default to `/tmp/codex-usage` through `.env` `DATA_PATH`. On Windows, first-run `.env` creation writes `C:\Temp\codex-usage` to `DATA_PATH`.
 Codex session data is read from the current user's `.codex` folder by default, or from `.env` CODEX_HOME when configured.
+HTML report styling is selected by `.env` `STYLES`.
+The `.env` file supports `DATETIME_FORMAT`.
 Windows drive paths are supported in `.env` and CLI options. Quote paths that contain spaces.
 Invalid OS paths for output folders result in a runtime error.
 
 ```bash
 DATA_PATH="C:\Users\example\Codex Usage"
 CODEX_HOME="C:\Users\example"
+STYLES=styles-dark-01.css
+DATETIME_FORMAT=MMM D, h:mm AP
 ```
 
 ## Documentation
@@ -101,12 +140,6 @@ codex-usage
 ```
 
 Remove the link later with `npm unlink --global codex-usage`.
-
-## Work In Progress
-
-This is a new project and not used by many people yet.  
-Please discuss issues with @CaptainStarbuck in Discord OpenAI server, (https://discord.gg/openai) Channel #codex-discussions -  
-and/or create Issues for changes, fixes, and enhancements in https://github.com/CaptainStarbuck/codex-usage/issues.
 
 ## License
 

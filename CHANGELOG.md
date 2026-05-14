@@ -3,7 +3,46 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
-### 2026-05-11 / v1.1.0
+## 2026-05-13 / v1.2.0
+
+- This is an roll-up of all 1.1.x changes. The focus has been entirely focused on making the HTML report immediately useful, much better organized, easier to understand.
+- Added new screenshots.
+- Added TL;DR to README
+
+### 2026-05-13 / v1.1.4
+
+- HTML reports now show a sortable Sessions table with session aggregate rows and expandable event detail rows.
+- The HTML Models table now expands to model-filtered Sessions rows that can further expand to model-filtered event details.
+
+### 2026-05-13 / v1.1.3
+
+- HTML reports generated with `--force-refresh` now include a Refresh control for pausing and resuming browser auto-refresh.
+- Fix EOL in Timeline chart mouseover.
+- Summary, collapsed By Model, and expanded By Model token displays now use the same order and labels as the Events table.
+- HTML report token displays now place Cache Hit Rate after Effective Input Tokens and Reasoning Output Tokens after Output Tokens, and table headers use line breaks for multi-word labels.
+- Summary cards are grouped into separate Input, Output, and Totals rows.
+- HTML reports now include an Output Token Timeline that charts output and reasoning output tokens on their own scale.
+
+### 2026-05-13 / v1.1.2
+
+- The HTML Models section is labeled By Model and groups usage by model and intelligence level, with expandable event rows for each group.
+- Added `src/utils/jsonl2json.js` as a convenience utility for converting Codex session JSONL files to formatted JSON. See `docs/jsonl2json.md`.
+- HTML report session columns display compact session hash references, and full session file paths appear in a Session Paths card.
+- HTML report numeric table headers align with numeric values, the Turn Index column is compact, and Events table model values include intelligence level.
+- HTML report Top Sessions and Top Events cards are temporarily disabled.
+- HTML report By Model no longer shows redundant Raw Total Tokens. Events table now shows organized token usage.
+- HTML report By Model collapsed rows no longer include Sessions, and event Session columns display compact hash and turn references.
+- HTML report event tables no longer include a dedicated Turn Index column.
+- HTML report Warnings and Insights now appears at the bottom of the report.
+
+### 2026-05-12 / v1.1.1
+
+- Dynamic HTML report styling, currently with two available files, one light and one dark.
+- Added the `DATETIME_FORMAT` `.env` value, now used to standardize the output format of all date/time values in the HTML report. See `docs/datetime.md`.
+- Models and Events tables use user-friendly column headers and fit columns to the available report width.
+- Top Events cards display the session on its own line above the event metric columns.
+
+## 2026-05-11 / v1.1.0
 
 Summary: This is a roll-up from 1.0.x.
 
@@ -41,7 +80,7 @@ Summary: This is a roll-up from 1.0.x.
 #### Enhanced
 
 - Added `--data-path` to override `DATA_PATH` for a single run.
-- Trimmed README to essentials, now refers to `getting-started.md` for details.
+- Trimmed README to essentials, now refers to `docs/getting-started.md` for details.
 
 ### 2026-05-11 / v1.0.2
 

@@ -10,11 +10,7 @@ Token consumption is read from JSONL records where `type` is `event_msg` and `pa
 
 ## Quota Snapshots
 
-Account quota information is read from non-null `payload.rate_limits` objects on `token_count` events. The parser attaches the event timestamp, source JSONL file, and session id derived from the rollout filename to each snapshot. The report displays the latest snapshot inside the selected window, or the latest earlier snapshot found in the scanned files.
-
-The quota report normalizes primary and secondary windows with `remaining_percent = 100 - used_percent`, clamped to `0` through `100`. A `300` minute window is labeled `5h limit`, and a `10080` minute window is labeled `7d limit`. Other windows are labeled `Primary limit` or `Secondary limit`. `resets_at` is kept as a Unix timestamp in seconds and also rendered as a local display string.
-
-Credits are displayed when present in `payload.rate_limits.credits`. Unlimited credits are shown as `Credits: unlimited`; otherwise a provided balance is rounded for display.
+Account quota information is read from non-null `payload.rate_limits` objects on `token_count` events. The parser attaches source context to each snapshot so the report can display the latest relevant quota state.
 
 ## Model Metadata
 
@@ -22,35 +18,15 @@ The parser reads `turn_context` records for `model` and `effort`. If a session f
 
 ## Totals
 
-The structured report keeps Codex-provided raw totals separate from derived aggregate display values. It sums each raw token column independently:
-
-- `input_tokens`
-- `cached_input_tokens`
-- `output_tokens`
-- `reasoning_output_tokens`
-- `raw_total_tokens`
-
-The report also computes derived metrics:
-
-- `observed_token_volume = input_tokens + output_tokens`
-- `effective_input_tokens = input_tokens - cached_input_tokens`
-- `visible_output_tokens = output_tokens - reasoning_output_tokens`
-- `cache_hit_rate = cached_input_tokens / input_tokens`
-- `reasoning_output_rate = reasoning_output_tokens / output_tokens`
-
-Rate calculations use zero when the denominator is zero or unavailable.
+The structured report keeps Codex-provided raw token totals separate from derived display values. Derived totals cover observed token volume, effective input, visible output, cache hit rate, and reasoning output rate. See [analytics-report.md](./analytics-report.md) for field definitions.
 
 ## Insights
 
-Insights include no-event windows, unavailable quota data, stale quota snapshots, multiple active sessions, unknown model metadata, unknown intelligence metadata, low cache hit rate for large input events, events over 100k observed token volume, model or intelligence changes inside a session, and ignored duplicate token count events.
+Insights are report annotations that call attention to missing data, stale quota data, active session patterns, unknown metadata, large events, cache behavior, metadata changes inside a session, and ignored duplicate token count events. See [analytics-report.md](./analytics-report.md) for the current insight list.
 
 ## Output Formats
 
-The command supports `--format text|json|html`. The default `text` format preserves the fixed-width event table and includes a corrected summary section. The `json` format emits the structured report object. The `html` format emits a standalone static browser dashboard and can be written with `--out`. Filename-only output values are written under `DATA_PATH`; output values with a folder path are used directly.
-
-The browser dashboard includes quota cards, summary cards, a stacked SVG timeline, warnings and notices, top sessions, top events, model summaries, and collapsible event details. Table overflow is contained within table panels so wide event data does not force page-level horizontal scrolling.
-
-The Events table stores its expanded detail rows and active sort order in browser `localStorage`, scoped to the report file path, Codex home, and report window length. This lets browser refreshes keep expanded rows open when the same event row is present in the regenerated report.
+The command supports `--format text|json|html`. Text output is intended for terminal review, JSON output emits the structured report object, and HTML output emits a standalone static browser dashboard. The report includes the selected window, quota status, token totals, insights, session summaries, model summaries, event rows, and optional session path references depending on the renderer. See [analytics-report.md](./analytics-report.md) for report model fields, derived metrics, HTML dashboard behavior, sorting, expansion state, and renderer-specific details.
 
 ## Interval Mode
 
@@ -58,7 +34,7 @@ The command supports `--interval <seconds>` with `--out`. Interval mode runs one
 
 Each interval run uses a fresh `now` and cutoff time, so a command such as `--minutes 15 --interval 15` keeps the output focused on the latest rolling 15 minute window. If history capture is enabled, each interval run appends one history snapshot.
 
-`--force-refresh` can be used with `--format html --interval <seconds>`. The generated HTML includes a browser timer that reloads the page after `interval - 2` seconds. The interval must be at least 3 seconds.
+`--force-refresh` can be used with `--format html --interval <seconds>`. The generated HTML includes a browser timer that reloads the page after `interval - 2` seconds. Force-refresh reports include a Refresh button above the report content that toggles the browser timer off and on. The interval must be at least 3 seconds.
 
 ## History
 
@@ -66,7 +42,7 @@ History capture is opt-in. `--save-history` appends one compact JSON object per 
 
 ## Configuration
 
-The CLI reads `.env` from the project root. When `.env` is not present, the CLI creates `.env` from `.env.example` before reading settings. On Windows, `.env` creation copies `DATA_PATH_WINDOWS_DEFAULT` to `DATA_PATH` so app-managed data defaults to `C:\Temp\codex-usage`; other platforms default to `/tmp/codex-usage`. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file, and is created when the command starts. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. The `--data-path` and `--codex-home` CLI options override these settings for a single run.
+The CLI reads `.env` from the project root. When `.env` is not present, the CLI creates `.env` from `.env.example` before reading settings. On Windows, `.env` creation copies `DATA_PATH_WINDOWS_DEFAULT` to `DATA_PATH` so app-managed data defaults to `C:\Temp\codex-usage`; other platforms default to `/tmp/codex-usage`. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file, and is created when the command starts. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. `STYLES` supplies the HTML report stylesheet selection. The `--data-path`, `--codex-home`, and `--styles` CLI options override these settings for a single run.
 
 Configured paths are joined, resolved, and displayed with native path rules. Windows drive, UNC, and backslash paths use Windows path rules so `.env` and CLI values such as `C:\Users\example` remain valid. Invalid OS paths for output folders result in a runtime error.
 
@@ -88,7 +64,7 @@ The project source is organized into focused files:
 - `src/report-text.js`, `src/report-json.js`, and `src/report-html.js` render the structured report model as terminal text, JSON, or standalone HTML.
 - `docs/` contains the user and maintainer documentation.
 
-HTML report rendering uses template assets under `src/html`. `src/report-html.js` reads `base.html`, replaces full-line stub comments with the refresh script, CSS, escaped report JSON, and browser JavaScript, then returns the complete standalone document.
+HTML report rendering uses template assets under `src/html`. `src/report-html.js` reads `base.html`, adds HTML display metadata, replaces full-line stub comments with selected CSS, escaped report JSON, and browser JavaScript, then returns the complete standalone document. Browser JavaScript uses the refresh metadata to render controls and schedule page reloads when `--force-refresh` is active.
 
 ## Source Aggregate Utility
 

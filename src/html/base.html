@@ -4,7 +4,6 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>Codex Usage Report</title>
-        /* refresh.script */
         <style>
             /* styles.css */
         </style>
@@ -19,13 +18,23 @@
                 <div class="meta" id="generated"></div>
             </header>
 
+            <section
+                class="panel report-controls"
+                id="report-controls"
+                hidden
+            ></section>
             <section id="quota"></section>
             <h2>Summary</h2>
             <section class="cards" id="summary"></section>
             <h2>Timeline</h2>
             <section class="panel timeline" id="timeline"></section>
-            <section id="insights"></section>
-            <section class="dashboard-grid">
+            <h2>Output Token Timeline</h2>
+            <section
+                class="panel timeline"
+                id="output-token-timeline"
+            ></section>
+            <!-- Top Sessions and Top Events are temporarily disabled. -->
+            <!-- <section class="dashboard-grid">
                 <div>
                     <h2>Top Sessions</h2>
                     <section class="panel list" id="top-sessions"></section>
@@ -34,15 +43,18 @@
                     <h2>Top Events</h2>
                     <section class="panel list" id="top-events"></section>
                 </div>
-            </section>
+            </section> -->
             <h2>Models</h2>
             <section class="panel table-panel">
                 <table id="models-table"></table>
             </section>
-            <h2>Events</h2>
+            <h2>Sessions</h2>
             <section class="panel table-panel">
                 <table id="events-table"></table>
             </section>
+            <h2>Session Paths</h2>
+            <section class="panel session-paths" id="session-paths"></section>
+            <section id="insights"></section>
         </main>
         <script type="application/json" id="report-data">
             /* report.json */

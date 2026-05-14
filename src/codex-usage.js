@@ -1,14 +1,28 @@
 #!/usr/bin/env node
 
-import { mkdir } from 'node:fs/promises';
+import { access, mkdir } from 'node:fs/promises';
+import { dirname, extname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { DEFAULT_WINDOW_MINUTES } from './constants.js';
 import {
+    DEFAULT_STYLES_FILE_NAME,
+    DEFAULT_WINDOW_MINUTES,
+} from './constants.js';
+import {
+    dirnameConfiguredPath,
+    isConfiguredFilenameOnly,
+    joinConfiguredPath,
     normalizeConfiguredOutputPath,
     resolveConfiguredPath,
 } from './path-utils.js';
 import { readAppEnvironment } from './settings.js';
 import { runInterval, runOnce } from './usage-runner.js';
+
+const HTML_SOURCE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'html');
+const STYLE_NAME_ALIASES = new Map([
+    ['light', 'styles-light-01.css'],
+    ['dark', 'styles-dark-01.css'],
+]);
 
 /**
  * @typedef {object} ParsedRuntimeOptions
@@ -21,10 +35,11 @@ import { runInterval, runOnce } from './usage-runner.js';
  * @property {number} minutes Report window length in minutes.
  * @property {string | undefined} out Optional output file path.
  * @property {boolean} saveHistory Whether to append a history snapshot.
+ * @property {string | undefined} styles Optional HTML stylesheet file path.
  */
 
 /**
- * @typedef {ParsedRuntimeOptions & { codexHome: string, dataPath: string }} RuntimeOptions
+ * @typedef {ParsedRuntimeOptions & { codexHome: string, dataPath: string, datetimeFormat: string, stylesPath: string }} RuntimeOptions
  */
 
 /**
@@ -45,6 +60,7 @@ function parseArgs(args) {
         minutes: DEFAULT_WINDOW_MINUTES,
         out: undefined,
         saveHistory: false,
+        styles: undefined,
     };
 
     for (let index = 0; index < args.length; index += 1) {
@@ -78,6 +94,12 @@ function parseArgs(args) {
                 continue;
             }
             options.out = args[index + 1];
+            index += 1;
+        } else if (arg === '--styles' || arg === '--style') {
+            if (!args[index + 1]) {
+                continue;
+            }
+            options.styles = args[index + 1];
             index += 1;
         } else if (arg === '--interval') {
             if (!args[index + 1]) {
@@ -142,7 +164,7 @@ function parseArgs(args) {
  * @returns {void}
  */
 function printHelp() {
-    console.log(`Usage: node src/codex-usage.js [--minutes 15] [--codex-home /home/codex/.codex] [--data-path /tmp/codex-usage] [--format text|json|html] [--out path] [--interval seconds] [--force-refresh] [--save-history] [--history path]
+    console.log(`Usage: node src/codex-usage.js [--minutes 15] [--codex-home /home/codex/.codex] [--data-path /tmp/codex-usage] [--format text|json|html] [--out path] [--styles path] [--interval seconds] [--force-refresh] [--save-history] [--history path]
 
 Shows Codex token usage analytics from session JSONL files for the selected window.
 Use --interval with --out to regenerate the output file until a terminal keypress stops the loop at the next interval.
@@ -177,6 +199,9 @@ async function loadRuntimeOptions(options) {
         options.dataPath ?? environment.dataPath,
         options.dataPath ?? environment.dataPath
     );
+    const stylesPath = await resolveStylesPath(
+        options.styles ?? environment.styles
+    );
 
     await mkdir(resolveConfiguredPath(dataPath), { recursive: true });
 
@@ -184,7 +209,63 @@ async function loadRuntimeOptions(options) {
         ...options,
         codexHome: options.codexHome ?? environment.codexHome,
         dataPath,
+        datetimeFormat: environment.datetimeFormat,
+        stylesPath,
     };
+}
+
+/**
+ * Resolves the configured HTML stylesheet path and confirms it can be read.
+ *
+ * @param {string | undefined} stylesSetting CLI or environment stylesheet value.
+ * @returns {Promise<string>} Resolved stylesheet path.
+ */
+async function resolveStylesPath(stylesSetting) {
+    const stylesPath = normalizeStylesPath(
+        stylesSetting ?? DEFAULT_STYLES_FILE_NAME
+    );
+
+    try {
+        await access(resolveConfiguredPath(stylesPath));
+    } catch {
+        throw new Error(`Styles ${stylesPath} is inaccessible`);
+    }
+
+    return stylesPath;
+}
+
+/**
+ * Applies style aliases, filename defaults, and OS path validation.
+ *
+ * @param {string} stylesSetting CLI or environment stylesheet value.
+ * @returns {string} Validated stylesheet path.
+ */
+function normalizeStylesPath(stylesSetting) {
+    const normalizedName = normalizeStylesName(stylesSetting.trim());
+    const configuredStylesPath = isConfiguredFilenameOnly(normalizedName)
+        ? joinConfiguredPath(HTML_SOURCE_DIR, normalizedName)
+        : normalizedName;
+
+    return normalizeConfiguredOutputPath(
+        configuredStylesPath,
+        dirnameConfiguredPath(configuredStylesPath)
+    );
+}
+
+/**
+ * Converts short style names and extensionless filenames to CSS filenames.
+ *
+ * @param {string} stylesName User configured style value.
+ * @returns {string} Normalized style filename or path.
+ */
+function normalizeStylesName(stylesName) {
+    const aliasedName = STYLE_NAME_ALIASES.get(stylesName) ?? stylesName;
+
+    if (isConfiguredFilenameOnly(aliasedName) && extname(aliasedName) === '') {
+        return `${aliasedName}.css`;
+    }
+
+    return aliasedName;
 }
 
 main().catch((error) => {
