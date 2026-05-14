@@ -3,6 +3,10 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+## 2026-05-13 / v1.2.1
+
+- Text report Summary output now matches the HTML Summary card order, labels, and values, including Events.
+
 ## 2026-05-13 / v1.2.0
 
 - This is an roll-up of all 1.1.x changes. The focus has been entirely focused on making the HTML report immediately useful, much better organized, easier to understand.

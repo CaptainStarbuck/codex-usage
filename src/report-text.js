@@ -99,7 +99,8 @@ function formatCredits(credits) {
 }
 
 /**
- * Formats raw and derived totals for the text summary.
+ * Formats summary totals using the same groups, labels, order, and values as
+ * the HTML Summary cards.
  *
  * @param {object} report Structured usage report.
  * @returns {string[]} Summary lines.
@@ -107,14 +108,20 @@ function formatCredits(credits) {
 function formatSummary(report) {
     return [
         'Summary',
-        `observed_token_volume: ${formatInteger(report.totals.observed_token_volume)}`,
-        `raw_total_tokens: ${formatInteger(report.totals.raw_total_tokens)}`,
-        `effective_input_tokens: ${formatInteger(report.totals.effective_input_tokens)}`,
-        `cached_input_tokens: ${formatInteger(report.totals.cached_input_tokens)}`,
-        `cache_hit_rate: ${formatPercent(report.totals.cache_hit_rate)}`,
-        `output_tokens: ${formatInteger(report.totals.output_tokens)}`,
-        `reasoning_output_tokens: ${formatInteger(report.totals.reasoning_output_tokens)}`,
-        `session_count: ${formatInteger(report.sessions.length)}`,
+        'Input',
+        `Input Tokens: ${formatInteger(report.totals.input_tokens)}`,
+        `Cached Input Tokens: ${formatInteger(report.totals.cached_input_tokens)}`,
+        `Effective Input Tokens: ${formatInteger(report.totals.effective_input_tokens)}`,
+        `Cache Hit Rate: ${formatPercent(report.totals.cache_hit_rate)}`,
+        '',
+        'Output',
+        `Output Tokens: ${formatInteger(report.totals.output_tokens)}`,
+        `Reasoning Output Tokens: ${formatInteger(report.totals.reasoning_output_tokens)}`,
+        '',
+        'Totals',
+        `Total Tokens: ${formatInteger(report.totals.observed_token_volume)}`,
+        `Sessions: ${formatInteger(report.sessions.length)}`,
+        `Events: ${formatInteger(report.rows.length)}`,
     ];
 }
 

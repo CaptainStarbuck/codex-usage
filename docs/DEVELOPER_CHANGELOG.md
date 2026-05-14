@@ -2,6 +2,15 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
+### 2026-05-13 / v1.2.1
+
+- Changed the text report Summary renderer to use the same grouped field order, labels, and observed token total as the HTML Summary cards.
+- Updated analytics documentation for text Summary output alignment with HTML.
+
+### 2026-05-13 / v1.2.0
+
+- Released
+
 ### 2026-05-13 / v1.1.4
 
 - Changed the HTML Events table renderer to build session summary groups in the browser and render nested event detail tables per session.
