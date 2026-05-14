@@ -6,6 +6,7 @@ More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 ## 2026-05-13 / v1.2.1
 
 - Text report Summary output now matches the HTML Summary card order, labels, and values, including Events.
+- Text report date and time output now follows `DATETIME_FORMAT`, and text report field labels now use display labels instead of field IDs.
 
 ## 2026-05-13 / v1.2.0
 

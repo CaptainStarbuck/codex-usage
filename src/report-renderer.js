@@ -4,7 +4,7 @@ import { renderTextReport } from './report-text.js';
 
 /**
  * @typedef {object} RenderOptions
- * @property {string} datetimeFormat HTML report datetime display format.
+ * @property {string} datetimeFormat Report datetime display format.
  * @property {boolean} forceRefresh Whether HTML output should include the calculated refresh timer.
  * @property {string} format Output format.
  * @property {number | undefined} interval Optional regeneration interval in seconds.
@@ -31,5 +31,7 @@ export function renderReport(report, options) {
             stylesPath: options.stylesPath,
         });
     }
-    return renderTextReport(report);
+    return renderTextReport(report, {
+        datetimeFormat: options.datetimeFormat,
+    });
 }

@@ -19,7 +19,7 @@ The command creates `.env` from `.env.example` when `.env` is not present. The m
 - `DATA_PATH` for app-managed output and history files.
 - `CODEX_HOME` for the Codex session folder to scan.
 - `STYLES` for the HTML report stylesheet.
-- `DATETIME_FORMAT` for HTML report date and time labels.
+- `DATETIME_FORMAT` for HTML and text report date and time labels.
 
 Use `--data-path`, `--codex-home`, or `--styles` to override local settings for a single run. See [cli-reference.md](./cli-reference.md) for defaults, path rules, and validation. See [datetime.md](./datetime.md) for date and time tokens.
 

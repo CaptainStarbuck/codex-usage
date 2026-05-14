@@ -6,6 +6,8 @@ These are details about other changes, and trivial details that don't warrant a 
 
 - Changed the text report Summary renderer to use the same grouped field order, labels, and observed token total as the HTML Summary cards.
 - Updated analytics documentation for text Summary output alignment with HTML.
+- Routed `DATETIME_FORMAT` into the text renderer for report windows, quota capture timestamps, and event table timestamps.
+- Changed text report quota and event table labels to display labels instead of report field IDs.
 
 ### 2026-05-13 / v1.2.0
 

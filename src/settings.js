@@ -18,7 +18,7 @@ const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
  * @typedef {object} AppEnvironment
  * @property {string} codexHome Codex home folder to scan.
  * @property {string} dataPath Root folder used for app-managed data files.
- * @property {string} datetimeFormat HTML report datetime display format.
+ * @property {string} datetimeFormat Report datetime display format.
  * @property {string} styles HTML report stylesheet selection.
  */
 

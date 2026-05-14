@@ -15,7 +15,7 @@ import { buildUsageReport } from './usage-metrics.js';
  * @typedef {object} RunOptions
  * @property {string} codexHome Codex home folder to scan.
  * @property {string | undefined} dataPath Root folder used for app-managed data files.
- * @property {string} datetimeFormat HTML report datetime display format.
+ * @property {string} datetimeFormat Report datetime display format.
  * @property {boolean} forceRefresh Whether HTML output should include the calculated refresh timer.
  * @property {string} format Output format.
  * @property {string | undefined} history Optional history output path.

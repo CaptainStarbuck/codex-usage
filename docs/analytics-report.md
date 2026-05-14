@@ -56,7 +56,7 @@ Expanded rows and the active sort order are stored in browser `localStorage`, sc
 
 ## Text And JSON Reports
 
-The text report is optimized for terminal review. It includes the selected window, quota details when available, aggregate totals, warnings and notices, session and model summaries, and a fixed-width event table. Its Summary section uses the same input, output, and totals grouping as the HTML Summary cards. Summary labels are display labels, and Total Tokens uses observed token volume.
+The text report is optimized for terminal review. It includes the selected window, quota details when available, aggregate totals, warnings and notices, session and model summaries, and a fixed-width event table. Its Summary section uses the same input, output, and totals grouping as the HTML Summary cards. Summary, quota, and event table labels are display labels, and Total Tokens uses observed token volume. Report window timestamps, quota capture timestamps, and event table timestamps use `DATETIME_FORMAT`.
 
 The JSON report emits the full structured report object. It is useful for piping into other tools, saving snapshots, or inspecting the raw normalized report data.
 

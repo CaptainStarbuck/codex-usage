@@ -1,6 +1,6 @@
 # Date And Time Format
 
-`DATETIME_FORMAT` controls the date and time labels used by the HTML report. The default value is:
+`DATETIME_FORMAT` controls the date and time labels used by the HTML and text reports. The default value is:
 
 ```bash
 DATETIME_FORMAT=MMM D, h:mm AP

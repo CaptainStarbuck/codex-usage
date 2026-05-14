@@ -1,5 +1,6 @@
 import { TOKEN_FIELDS } from './constants.js';
 
+const DEFAULT_TEXT_DATETIME_FORMAT = 'MMM D, h:mm AP';
 const COLUMNS = [
     'timestamp',
     'model',
@@ -7,21 +8,28 @@ const COLUMNS = [
     'observed_token_volume',
     ...TOKEN_FIELDS,
 ];
+/** @type {Record<string, string>} */
+const FIELD_LABELS = {
+    observed_token_volume: 'Total Tokens',
+};
 
 /**
  * Renders the text usage report.
  *
  * @param {object} report Structured usage report.
+ * @param {{ datetimeFormat?: string }} [options] Text rendering options.
  * @returns {string} Terminal report text.
  */
-export function renderTextReport(report) {
+export function renderTextReport(report, options = {}) {
+    const datetimeFormat =
+        options.datetimeFormat || DEFAULT_TEXT_DATETIME_FORMAT;
     /** @type {string[]} */
     const lines = [
-        `Codex token usage from ${report.window.cutoff} to ${report.window.now}`,
+        `Codex token usage from ${formatDatetime(report.window.cutoff, datetimeFormat)} to ${formatDatetime(report.window.now, datetimeFormat)}`,
         '',
         ...formatSummary(report),
         '',
-        ...formatQuota(report.quota),
+        ...formatQuota(report.quota, datetimeFormat),
     ];
 
     if (report.insights.length > 0) {
@@ -34,7 +42,7 @@ export function renderTextReport(report) {
     if (report.rows.length === 0) {
         lines.push('', 'No token usage events found in the selected window.');
     } else {
-        lines.push('', formatTable(report.rows));
+        lines.push('', formatTable(report.rows, datetimeFormat));
     }
 
     return `${lines.join('\n')}\n`;
@@ -44,22 +52,23 @@ export function renderTextReport(report) {
  * Formats account quota details for terminal output.
  *
  * @param {object} quota Normalized quota report.
+ * @param {string} datetimeFormat Date and time display pattern.
  * @returns {string[]} Quota lines.
  */
-function formatQuota(quota) {
+function formatQuota(quota, datetimeFormat) {
     if (!quota?.available) {
         return [
             'Quota',
-            'available: false',
-            ...(quota?.warnings ?? []).map((warning) => `warning: ${warning}`),
+            'Available: false',
+            ...(quota?.warnings ?? []).map((warning) => `Warning: ${warning}`),
         ];
     }
 
     /** @type {string[]} */
     const lines = [
         'Quota',
-        `captured_at: ${quota.captured_at}`,
-        `session_id: ${quota.session_id}`,
+        `Captured At: ${formatDatetime(quota.captured_at, datetimeFormat)}`,
+        `Session: ${quota.session_id}`,
     ];
 
     for (const limit of quota.limits ?? []) {
@@ -67,7 +76,7 @@ function formatQuota(quota) {
             ? `, resets ${limit.resets_at_local}`
             : '';
         lines.push(
-            `${limit.name}: ${formatPercentValue(limit.remaining_percent)} remaining (${formatPercentValue(limit.used_percent)} used${resetLabel})`
+            `${displayLabel(String(limit.name ?? 'limit'))}: ${formatPercentValue(limit.remaining_percent)} remaining (${formatPercentValue(limit.used_percent)} used${resetLabel})`
         );
     }
 
@@ -129,19 +138,20 @@ function formatSummary(report) {
  * Formats usage rows as a fixed-width terminal table.
  *
  * @param {object[]} rows Usage rows.
+ * @param {string} datetimeFormat Date and time display pattern.
  * @returns {string} Table text.
  */
-function formatTable(rows) {
-    const widths = columnWidths(rows);
-    const header = COLUMNS.map((column) => pad(column, widths[column])).join(
-        '  '
-    );
+function formatTable(rows, datetimeFormat) {
+    const widths = columnWidths(rows, datetimeFormat);
+    const header = COLUMNS.map((column) =>
+        pad(displayLabel(column), widths[column])
+    ).join('  ');
     const ruler = COLUMNS.map((column) => '-'.repeat(widths[column])).join(
         '  '
     );
     const body = rows.map((row) =>
         COLUMNS.map((column) =>
-            pad(String(row[column] ?? ''), widths[column])
+            pad(formatCellValue(row, column, datetimeFormat), widths[column])
         ).join('  ')
     );
 
@@ -152,24 +162,43 @@ function formatTable(rows) {
  * Computes column widths for the report table.
  *
  * @param {object[]} rows Usage rows.
+ * @param {string} datetimeFormat Date and time display pattern.
  * @returns {Record<string, number>} Width by column name.
  */
-function columnWidths(rows) {
+function columnWidths(rows, datetimeFormat) {
     /** @type {Record<string, number>} */
     const widths = Object.fromEntries(
-        COLUMNS.map((column) => [column, column.length])
+        COLUMNS.map((column) => [column, displayLabel(column).length])
     );
 
     for (const row of rows) {
         for (const column of COLUMNS) {
             widths[column] = Math.max(
                 widths[column],
-                String(row[column] ?? '').length
+                formatCellValue(row, column, datetimeFormat).length
             );
         }
     }
 
     return widths;
+}
+
+/**
+ * Formats one table cell for terminal display.
+ *
+ * @param {object} row Usage row.
+ * @param {string} column Field key.
+ * @param {string} datetimeFormat Date and time display pattern.
+ * @returns {string} Display value.
+ */
+function formatCellValue(row, column, datetimeFormat) {
+    const value = row[column];
+
+    if (column === 'timestamp') {
+        return formatDatetime(value, datetimeFormat);
+    }
+
+    return String(value ?? '');
 }
 
 /**
@@ -211,4 +240,67 @@ function formatPercent(value) {
  */
 function formatPercentValue(value) {
     return `${Number(value ?? 0).toFixed(1)}%`;
+}
+
+/**
+ * Converts report field keys to user-facing text labels.
+ *
+ * @param {string} field Report field key.
+ * @returns {string} Display label.
+ */
+function displayLabel(field) {
+    return (
+        FIELD_LABELS[field] ??
+        field
+            .split(/[_ ]/u)
+            .filter(Boolean)
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ')
+    );
+}
+
+/**
+ * Formats a timestamp-like value with the configured display mask.
+ *
+ * @param {unknown} value Timestamp value.
+ * @param {string} datetimeFormat Date and time display pattern.
+ * @returns {string} Formatted display value.
+ */
+function formatDatetime(value, datetimeFormat) {
+    const date = value instanceof Date ? value : new Date(String(value ?? ''));
+
+    if (Number.isNaN(date.getTime())) {
+        return String(value ?? '');
+    }
+
+    const monthShort = new Intl.DateTimeFormat(undefined, {
+        month: 'short',
+    }).format(date);
+    const day = String(date.getDate());
+    const hour24 = date.getHours();
+    const hour12 = String(hour24 % 12 || 12);
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    const second = String(date.getSeconds()).padStart(2, '0');
+    const meridiem = hour24 < 12 ? 'AM' : 'PM';
+
+    /** @type {Record<string, string>} */
+    const tokens = {
+        MMM: monthShort,
+        DD: day.padStart(2, '0'),
+        D: day,
+        HH: String(hour24).padStart(2, '0'),
+        H: String(hour24),
+        hh: hour12.padStart(2, '0'),
+        h: hour12,
+        mm: minute,
+        ss: second,
+        AP: meridiem,
+        A: meridiem,
+        a: meridiem.toLowerCase(),
+    };
+
+    return datetimeFormat.replace(
+        /MMM|DD|D|HH|H|hh|h|mm|ss|AP|A|a/gu,
+        (token) => tokens[token] ?? token
+    );
 }
