@@ -23,9 +23,13 @@ See README.md for information about this software called Codex Usage.
 
 All changelog updates are added to the bottom of the current date/version section, not at the top.
 
+Use the local date/time for output, not UTC.
+
 ### `docs` folder
 
 In this project the `docs` folder is intended for project contributors. It describes how things work and where in the code the functionality is implemented. `docs` files contain the enduring reference material to events noted in DEVELOPER_CHANGELOG.md and CHANGELOG.md.
+
+Do not run src/aggregate.js to generate docs/aggregate.md unless explicitly instructed.
 
 ## Linting
 
