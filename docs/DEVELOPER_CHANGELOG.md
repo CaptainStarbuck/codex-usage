@@ -2,6 +2,15 @@
 
 These are details about other changes, and trivial details that don't warrant a changelog entry. This is optional and for-reference-only reading.
 
+### 2026-05-14 / v1.2.2-alpha.1
+
+- Added runtime parsing for `--from-date`, `--from-minutes`, `--to-date`, `--to-minutes`, `--scope`, `--in-scope`, and detail limit options.
+- Added explicit month/day date parsing for range options so values without a year do not fall through to Node's legacy date parser.
+- Added `.env` defaults for `RANGE_SCOPE`, `IN_SCOPE`, and detail limit settings.
+- Moved usage row range filtering after session parsing so bounded ranges, whole-session scope, and complete-session filtering share one normalized range.
+- Added pre-render report limit checks for event detail tables and session tables.
+- Updated CLI, getting started, README, and docs index documentation for range filtering.
+
 ### 2026-05-14 / v1.2.1
 
 - Changed the text report Summary renderer to use the same grouped field order, labels, and observed token total as the HTML Summary cards.

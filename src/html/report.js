@@ -929,7 +929,10 @@ function eventTableStateKey() {
         'sessions-table-state',
         window.location.pathname,
         report.metadata.codex_home || '',
-        report.window.minutes || '',
+        report.window.cutoff || '',
+        report.window.now || '',
+        report.metadata.range?.scope || '',
+        report.metadata.range?.in_scope || '',
     ].join(':');
 }
 
@@ -990,7 +993,10 @@ function modelGroupsTableStateKey() {
         'model-groups-table-state',
         window.location.pathname,
         report.metadata.codex_home || '',
-        report.window.minutes || '',
+        report.window.cutoff || '',
+        report.window.now || '',
+        report.metadata.range?.scope || '',
+        report.metadata.range?.in_scope || '',
     ].join(':');
 }
 

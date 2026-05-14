@@ -6,7 +6,7 @@ The command reads local Codex JSONL session files from `sessions` and `archived_
 
 ## Usage Events
 
-Token consumption is read from JSONL records where `type` is `event_msg` and `payload.type` is `token_count`. The report uses `payload.info.last_token_usage` for events in the selected time window only when `payload.info.total_token_usage` advances within the session. Rate limit status events can repeat a previous nonzero `last_token_usage`, so repeated cumulative totals are treated as quota updates rather than additional token usage.
+Token consumption is read from JSONL records where `type` is `event_msg` and `payload.type` is `token_count`. The parser keeps valid token usage events from candidate session files, and the report applies the normalized range after parsing. A row is included only when `payload.info.total_token_usage` advances within the session. Rate limit status events can repeat a previous nonzero `last_token_usage`, so repeated cumulative totals are treated as quota updates rather than additional token usage.
 
 ## Quota Snapshots
 
@@ -20,6 +20,12 @@ The parser reads `turn_context` records for `model` and `effort`. If a session f
 
 The structured report keeps Codex-provided raw token totals separate from derived display values. Derived totals cover observed token volume, effective input, visible output, cache hit rate, and reasoning output rate. See [analytics-report.md](./analytics-report.md) for field definitions.
 
+## Range Filtering
+
+Range options normalize to an inclusive start time, exclusive end time, scope, and complete-session flag before parsed rows are summarized. `--scope events` keeps matching events and computes session totals from those events. `--scope sessions` keeps whole sessions that intersect the selected range. `--in-scope` removes any session whose first or last usage event falls outside the selected range.
+
+Detail limits are checked during file scanning and after the structured report is built. The command throws a runtime error instead of truncating data when a configured file, event, session, turn, or model limit would be exceeded.
+
 ## Insights
 
 Insights are report annotations that call attention to missing data, stale quota data, active session patterns, unknown metadata, large events, cache behavior, metadata changes inside a session, and ignored duplicate token count events. See [analytics-report.md](./analytics-report.md) for the current insight list.
@@ -32,7 +38,7 @@ The command supports `--format text|json|html`. Text output is intended for term
 
 The command supports `--interval <seconds>` with `--out`. Interval mode runs one report immediately, writes the configured output file, waits the requested number of seconds, and repeats. Any terminal keypress records a stop request; the command exits instead of running again when the next interval boundary is reached.
 
-Each interval run uses a fresh `now` and cutoff time, so a command such as `--minutes 15 --interval 15` keeps the output focused on the latest rolling 15 minute window. If history capture is enabled, each interval run appends one history snapshot.
+Each interval run uses a fresh `now` and normalized range, so a command such as `--minutes 15 --interval 15` keeps the output focused on the latest rolling 15 minute window. If history capture is enabled, each interval run appends one history snapshot.
 
 `--force-refresh` can be used with `--format html --interval <seconds>`. The generated HTML includes a browser timer that reloads the page after `interval - 2` seconds. Force-refresh reports include a Refresh button above the report content that toggles the browser timer off and on. The interval must be at least 3 seconds.
 
@@ -42,7 +48,7 @@ History capture is opt-in. `--save-history` appends one compact JSON object per 
 
 ## Configuration
 
-The CLI reads `.env` from the project root. When `.env` is not present, the CLI creates `.env` from `.env.example` before reading settings. On Windows, `.env` creation copies `DATA_PATH_WINDOWS_DEFAULT` to `DATA_PATH` so app-managed data defaults to `C:\Temp\codex-usage`; other platforms default to `/tmp/codex-usage`. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file, and is created when the command starts. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. `STYLES` supplies the HTML report stylesheet selection. The `--data-path`, `--codex-home`, and `--styles` CLI options override these settings for a single run.
+The CLI reads `.env` from the project root. When `.env` is not present, the CLI creates `.env` from `.env.example` before reading settings. On Windows, `.env` creation copies `DATA_PATH_WINDOWS_DEFAULT` to `DATA_PATH` so app-managed data defaults to `C:\Temp\codex-usage`; other platforms default to `/tmp/codex-usage`. `DATA_PATH` supplies the base folder for app-managed data files, including the default local history file, and is created when the command starts. `CODEX_HOME` supplies the Codex home folder to scan and appends `.codex` when the configured value does not include it. `STYLES` supplies the HTML report stylesheet selection. `RANGE_SCOPE`, `IN_SCOPE`, and detail limit settings supply range defaults. The `--data-path`, `--codex-home`, `--styles`, and range-related CLI options override these settings for a single run.
 
 Configured paths are joined, resolved, and displayed with native path rules. Windows drive, UNC, and backslash paths use Windows path rules so `.env` and CLI values such as `C:\Users\example` remain valid. Invalid OS paths for output folders result in a runtime error.
 
@@ -60,6 +66,9 @@ The project source is organized into focused files:
 - `src/session-files.js` finds recent Codex session files in the configured Codex home.
 - `src/session-parser.js` extracts token usage events, rate limit snapshots, and model metadata from Codex JSONL session records.
 - `src/quota-snapshot.js` normalizes Codex rate limit snapshots for report output.
+- `src/range-options.js` validates and normalizes range-related CLI and environment settings.
+- `src/usage-range.js` applies event, session, and complete-session range filtering to parsed rows.
+- `src/report-limits.js` enforces detail table row limits before rendering.
 - `src/usage-loader.js`, `src/usage-normalizer.js`, `src/usage-metrics.js`, `src/usage-groups.js`, and `src/usage-insights.js` load, normalize, summarize, group, and annotate usage data.
 - `src/report-text.js`, `src/report-json.js`, and `src/report-html.js` render the structured report model as terminal text, JSON, or standalone HTML.
 - `docs/` contains the user and maintainer documentation.

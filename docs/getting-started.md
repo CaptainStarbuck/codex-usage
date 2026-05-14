@@ -20,6 +20,9 @@ The command creates `.env` from `.env.example` when `.env` is not present. The m
 - `CODEX_HOME` for the Codex session folder to scan.
 - `STYLES` for the HTML report stylesheet.
 - `DATETIME_FORMAT` for HTML and text report date and time labels.
+- `RANGE_SCOPE` for event-based or session-based range matching.
+- `IN_SCOPE` for requiring complete sessions inside the selected range.
+- `MAX_EVENTS`, `MAX_SESSIONS`, `MAX_FILES`, `MAX_TURNS`, and `MAX_MODELS` for detail safety limits.
 
 Use `--data-path`, `--codex-home`, or `--styles` to override local settings for a single run. See [cli-reference.md](./cli-reference.md) for defaults, path rules, and validation. See [datetime.md](./datetime.md) for date and time tokens.
 
@@ -42,6 +45,24 @@ node src/codex-usage.js --minutes 60
 ```
 
 The report includes token usage events whose timestamps fall inside the selected window of the previous N minutes. Quota snapshots may come from the selected window or from the latest earlier snapshot found in scanned files.
+
+Use explicit range options for bounded windows:
+
+```bash
+node src/codex-usage.js --from-date 2026-05-14T09:00:00 --to-date 2026-05-14T10:00:00
+node src/codex-usage.js --from-date 5/11 --to-date 5/12
+node src/codex-usage.js --from-minutes 500 --to-minutes 200
+```
+
+Month/day date values without a year use the current year unless the requested month/day is after the current date, in which case they use the prior year.
+
+By default, range matching uses event timestamps. Use `--scope sessions` to include whole sessions that intersect the selected range. Use `--in-scope` to include only sessions whose first and last usage events are fully inside the selected range:
+
+```bash
+node src/codex-usage.js --from-minutes 500 --to-minutes 200 --scope sessions --in-scope
+```
+
+Detail output is guarded by `--max-events`, `--max-sessions`, `--max-files`, `--max-turns`, and `--max-models`, with matching `.env` defaults. The command fails instead of truncating report data when a configured limit would be exceeded.
 
 ## Choose An Output Format
 

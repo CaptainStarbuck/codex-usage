@@ -5,6 +5,13 @@ import { dirname, extname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+    DEFAULT_IN_SCOPE,
+    DEFAULT_MAX_EVENTS,
+    DEFAULT_MAX_FILES,
+    DEFAULT_MAX_MODELS,
+    DEFAULT_MAX_SESSIONS,
+    DEFAULT_MAX_TURNS,
+    DEFAULT_RANGE_SCOPE,
     DEFAULT_STYLES_FILE_NAME,
     DEFAULT_WINDOW_MINUTES,
 } from './constants.js';
@@ -17,6 +24,7 @@ import {
 } from './path-utils.js';
 import { readAppEnvironment } from './settings.js';
 import { runInterval, runOnce } from './usage-runner.js';
+import { validateRangeOptionCombination } from './range-options.js';
 
 const HTML_SOURCE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'html');
 const STYLE_NAME_ALIASES = new Map([
@@ -30,16 +38,28 @@ const STYLE_NAME_ALIASES = new Map([
  * @property {string | undefined} dataPath Root folder used for app-managed data files.
  * @property {boolean} forceRefresh Whether HTML output should include the calculated refresh timer.
  * @property {string} format Output format.
+ * @property {string | undefined} fromDate Absolute inclusive start date value.
+ * @property {number | undefined} fromMinutes Relative inclusive start minutes.
  * @property {string | undefined} history Optional history output path.
+ * @property {boolean | undefined} inScope Whether only complete sessions inside the range are included.
  * @property {number | undefined} interval Optional regeneration interval in seconds.
+ * @property {number | undefined} maxEvents Maximum event rows allowed in generated detail tables.
+ * @property {number | undefined} maxFiles Maximum session JSONL files allowed after file scanning.
+ * @property {number | undefined} maxModels Maximum model groups allowed in generated grouped tables.
+ * @property {number | undefined} maxSessions Maximum session rows allowed in generated tables.
+ * @property {number | undefined} maxTurns Maximum turn rows allowed in generated detail tables.
  * @property {number} minutes Report window length in minutes.
+ * @property {boolean} minutesExplicit Whether `--minutes` was supplied by the user.
  * @property {string | undefined} out Optional output file path.
+ * @property {string | undefined} rangeScope Whether range matching uses events or whole sessions.
  * @property {boolean} saveHistory Whether to append a history snapshot.
  * @property {string | undefined} styles Optional HTML stylesheet file path.
+ * @property {string | undefined} toDate Absolute exclusive end date value.
+ * @property {number | undefined} toMinutes Relative exclusive end minutes.
  */
 
 /**
- * @typedef {ParsedRuntimeOptions & { codexHome: string, dataPath: string, datetimeFormat: string, stylesPath: string }} RuntimeOptions
+ * @typedef {ParsedRuntimeOptions & { codexHome: string, dataPath: string, datetimeFormat: string, inScope: boolean, maxEvents: number, maxFiles: number, maxModels: number, maxSessions: number, maxTurns: number, rangeScope: string, stylesPath: string }} RuntimeOptions
  */
 
 /**
@@ -55,12 +75,24 @@ function parseArgs(args) {
         dataPath: undefined,
         forceRefresh: false,
         format: 'text',
+        fromDate: undefined,
+        fromMinutes: undefined,
         history: undefined,
+        inScope: undefined,
         interval: undefined,
+        maxEvents: undefined,
+        maxFiles: undefined,
+        maxModels: undefined,
+        maxSessions: undefined,
+        maxTurns: undefined,
         minutes: DEFAULT_WINDOW_MINUTES,
+        minutesExplicit: false,
         out: undefined,
+        rangeScope: undefined,
         saveHistory: false,
         styles: undefined,
+        toDate: undefined,
+        toMinutes: undefined,
     };
 
     for (let index = 0; index < args.length; index += 1) {
@@ -78,10 +110,46 @@ function parseArgs(args) {
             options.dataPath = args[index + 1];
             index += 1;
         } else if (arg === '--minutes') {
-            if (!args[index + 1]) {
-                continue;
-            }
-            options.minutes = Number.parseInt(args[index + 1], 10);
+            options.minutes = parsePositiveIntegerOption(arg, args[index + 1]);
+            options.minutesExplicit = true;
+            index += 1;
+        } else if (arg === '--from-date') {
+            options.fromDate = readOptionValue(arg, args[index + 1]);
+            index += 1;
+        } else if (arg === '--from-minutes') {
+            options.fromMinutes = parsePositiveIntegerOption(
+                arg,
+                args[index + 1]
+            );
+            index += 1;
+        } else if (arg === '--to-date') {
+            options.toDate = readOptionValue(arg, args[index + 1]);
+            index += 1;
+        } else if (arg === '--to-minutes') {
+            options.toMinutes = parsePositiveIntegerOption(
+                arg,
+                args[index + 1]
+            );
+            index += 1;
+        } else if (arg === '--scope') {
+            options.rangeScope = readOptionValue(arg, args[index + 1]);
+            index += 1;
+        } else if (arg === '--in-scope') {
+            options.inScope = true;
+        } else if (arg === '--max-events') {
+            options.maxEvents = parseLimitOption(arg, args[index + 1]);
+            index += 1;
+        } else if (arg === '--max-files') {
+            options.maxFiles = parseLimitOption(arg, args[index + 1]);
+            index += 1;
+        } else if (arg === '--max-models') {
+            options.maxModels = parseLimitOption(arg, args[index + 1]);
+            index += 1;
+        } else if (arg === '--max-sessions') {
+            options.maxSessions = parseLimitOption(arg, args[index + 1]);
+            index += 1;
+        } else if (arg === '--max-turns') {
+            options.maxTurns = parseLimitOption(arg, args[index + 1]);
             index += 1;
         } else if (arg === '--format') {
             if (!args[index + 1]) {
@@ -127,6 +195,7 @@ function parseArgs(args) {
     if (!Number.isFinite(options.minutes) || options.minutes < 1) {
         throw new Error('--minutes must be a positive integer.');
     }
+    validateRangeOptionCombination(options);
     if (
         options.interval !== undefined &&
         (!Number.isInteger(options.interval) || options.interval < 1)
@@ -159,16 +228,86 @@ function parseArgs(args) {
 }
 
 /**
+ * Reads a required option value.
+ *
+ * @param {string} optionName CLI option name.
+ * @param {string | undefined} value Candidate option value.
+ * @returns {string} Option value.
+ */
+function readOptionValue(optionName, value) {
+    if (!value || value.startsWith('--')) {
+        throw new Error(`${optionName} requires a value.`);
+    }
+
+    return value;
+}
+
+/**
+ * Parses a positive integer CLI option.
+ *
+ * @param {string} optionName CLI option name.
+ * @param {string | undefined} value Candidate option value.
+ * @returns {number} Positive integer value.
+ */
+function parsePositiveIntegerOption(optionName, value) {
+    const optionValue = readOptionValue(optionName, value);
+    const numberValue = Number(optionValue);
+
+    if (!Number.isInteger(numberValue) || numberValue < 1) {
+        throw new Error(`${optionName} must be a positive integer.`);
+    }
+
+    return numberValue;
+}
+
+/**
+ * Parses a nonnegative detail limit CLI option.
+ *
+ * @param {string} optionName CLI option name.
+ * @param {string | undefined} value Candidate option value.
+ * @returns {number} Nonnegative integer value.
+ */
+function parseLimitOption(optionName, value) {
+    const optionValue = readOptionValue(optionName, value);
+    const numberValue = Number(optionValue);
+
+    if (!Number.isInteger(numberValue) || numberValue < 0) {
+        throw new Error(`${optionName} must be a positive integer or 0.`);
+    }
+
+    return numberValue;
+}
+
+/**
  * Prints the command help text.
  *
  * @returns {void}
  */
 function printHelp() {
-    console.log(`Usage: node src/codex-usage.js [--minutes 15] [--codex-home /home/codex/.codex] [--data-path /tmp/codex-usage] [--format text|json|html] [--out path] [--styles path] [--interval seconds] [--force-refresh] [--save-history] [--history path]
-
-Shows Codex token usage analytics from session JSONL files for the selected window.
-Use --interval with --out to regenerate the output file until a terminal keypress stops the loop at the next interval.
-Use --force-refresh with HTML interval output to make the browser refresh at interval minus 2 seconds.`);
+    console.log(`Usage: node src/codex-usage.js [options]
+ --minutes <min>       Show previous N minutes
+ --from-date <date>    Start date or date/time (2026-05-13T19:00, 5/13, 5/13/26)
+ --from-minutes <min>  Start at now minus minutes
+ --to-date <date>      End date or date/time
+ --to-minutes <min>    End at now minus minutes
+ --scope <scope>       Range scope: events or sessions (default --scope sessions)
+ --in-scope            Include only complete sessions (default not in scope)
+ --max-events <count>  Max events per detail table (alpha default is 500)
+ --max-sessions <num>  Max sessions per table      (alpha default is 500)
+ --max-files <count>   Max session files scanned
+ --max-turns <count>   Max turns per detail table  (alpha not yet supported)
+ --max-models <count>  Max model groups per table
+ --codex-home <path>   Codex home folder to scan
+ --data-path <path>    App data and history folder
+ --format <format>     Output: text, json, or html (default text)
+ --out <path>          Write report to file        (default /tmp/codex-usage)
+ --styles <style>      HTML style: light, dark, or path (default dark)
+ --style <style>       Alias for --styles
+ --interval <sec>      Regenerate output every N seconds
+ --force-refresh       Add browser refresh to HTML output
+ --save-history        Append local history snapshot
+ --history <path>      History file path and enable save
+ -h, --help            Show this help and quit`);
 }
 
 /**
@@ -210,6 +349,19 @@ async function loadRuntimeOptions(options) {
         codexHome: options.codexHome ?? environment.codexHome,
         dataPath,
         datetimeFormat: environment.datetimeFormat,
+        inScope: options.inScope ?? environment.inScope ?? DEFAULT_IN_SCOPE,
+        maxEvents:
+            options.maxEvents ?? environment.maxEvents ?? DEFAULT_MAX_EVENTS,
+        maxFiles: options.maxFiles ?? environment.maxFiles ?? DEFAULT_MAX_FILES,
+        maxModels:
+            options.maxModels ?? environment.maxModels ?? DEFAULT_MAX_MODELS,
+        maxSessions:
+            options.maxSessions ??
+            environment.maxSessions ??
+            DEFAULT_MAX_SESSIONS,
+        maxTurns: options.maxTurns ?? environment.maxTurns ?? DEFAULT_MAX_TURNS,
+        rangeScope:
+            options.rangeScope ?? environment.rangeScope ?? DEFAULT_RANGE_SCOPE,
         stylesPath,
     };
 }

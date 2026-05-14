@@ -7,11 +7,10 @@ import { readConfigDefaults } from './settings.js';
  * Parses a Codex session JSONL file into usage rows and quota snapshots.
  *
  * @param {string} file Session JSONL file path.
- * @param {Date} cutoff Earliest event timestamp to report.
  * @param {string} codexHome Codex home directory for config fallback values.
  * @returns {Promise<{ rows: object[], quotaSnapshots: object[], duplicateTokenCountEvents: number }>} Parsed session data.
  */
-export async function parseSessionFile(file, cutoff, codexHome) {
+export async function parseSessionFile(file, codexHome) {
     const defaults = await readConfigDefaults(codexHome);
     /** @type {{ model: string, intelligenceLevel: string }} */
     const context = {
@@ -39,7 +38,7 @@ export async function parseSessionFile(file, cutoff, codexHome) {
         }
         updateContext(event, context);
         addQuotaSnapshot(event, file, quotaSnapshots);
-        addUsageRow(event, context, cutoff, file, rows, usageState);
+        addUsageRow(event, context, file, rows, usageState);
     }
 
     return {
@@ -82,17 +81,16 @@ function updateContext(event, context) {
 }
 
 /**
- * Adds a token usage row when an event is inside the reporting window.
+ * Adds a token usage row when an event contains valid token usage data.
  *
  * @param {object} event Parsed session event.
  * @param {{ model: string, intelligenceLevel: string }} context Current metadata.
- * @param {Date} cutoff Earliest timestamp to report.
  * @param {string} file Source session file.
  * @param {object[]} rows Mutable rows list.
  * @param {{ lastTotalUsage: object | undefined }} usageState Mutable session usage state.
  * @returns {void}
  */
-function addUsageRow(event, context, cutoff, file, rows, usageState) {
+function addUsageRow(event, context, file, rows, usageState) {
     const usage = event.payload?.info?.last_token_usage;
     const timestamp = new Date(event.timestamp ?? '');
 
@@ -111,7 +109,7 @@ function addUsageRow(event, context, cutoff, file, rows, usageState) {
     ) {
         return;
     }
-    if (Number.isNaN(timestamp.getTime()) || timestamp < cutoff) {
+    if (Number.isNaN(timestamp.getTime())) {
         return;
     }
 

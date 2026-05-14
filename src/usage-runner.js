@@ -7,9 +7,12 @@ import {
     normalizeConfiguredOutputPath,
     resolveConfiguredFileDestination,
 } from './path-utils.js';
+import { normalizeRangeOptions } from './range-options.js';
+import { enforceReportLimits } from './report-limits.js';
 import { renderReport } from './report-renderer.js';
 import { loadUsageData } from './usage-loader.js';
 import { buildUsageReport } from './usage-metrics.js';
+import { filterUsageRowsByRange } from './usage-range.js';
 
 /**
  * @typedef {object} RunOptions
@@ -18,12 +21,24 @@ import { buildUsageReport } from './usage-metrics.js';
  * @property {string} datetimeFormat Report datetime display format.
  * @property {boolean} forceRefresh Whether HTML output should include the calculated refresh timer.
  * @property {string} format Output format.
+ * @property {string | undefined} fromDate Absolute inclusive start date value.
+ * @property {number | undefined} fromMinutes Relative inclusive start minutes.
  * @property {string | undefined} history Optional history output path.
+ * @property {boolean} inScope Whether only complete sessions inside the range are included.
  * @property {number | undefined} interval Optional regeneration interval in seconds.
+ * @property {number} maxEvents Maximum event rows allowed in generated detail tables.
+ * @property {number} maxFiles Maximum session JSONL files allowed after file scanning.
+ * @property {number} maxModels Maximum model groups allowed in generated grouped tables.
+ * @property {number} maxSessions Maximum session rows allowed in generated tables.
+ * @property {number} maxTurns Maximum turn rows allowed in generated detail tables.
  * @property {number} minutes Report window length in minutes.
+ * @property {boolean} minutesExplicit Whether `--minutes` was supplied by the user.
  * @property {string | undefined} out Optional output file path.
+ * @property {string} rangeScope Whether range matching uses events or whole sessions.
  * @property {boolean} saveHistory Whether to append a history snapshot.
  * @property {string} stylesPath HTML report stylesheet path.
+ * @property {string | undefined} toDate Absolute exclusive end date value.
+ * @property {number | undefined} toMinutes Relative exclusive end minutes.
  */
 
 /**
@@ -34,21 +49,30 @@ import { buildUsageReport } from './usage-metrics.js';
  */
 export async function runOnce(options) {
     const now = new Date();
-    const cutoff = new Date(now.getTime() - options.minutes * 60 * 1000);
+    const range = normalizeRangeOptions(options, now);
     const outputPath = options.out
         ? resolveOutputFilePath(options.out, options)
         : undefined;
-    const usageData = await loadUsageData(options.codexHome, cutoff);
+    const usageData = await loadUsageData(
+        options.codexHome,
+        range.fromDate,
+        range.maxFiles
+    );
+    const filteredUsage = filterUsageRowsByRange(usageData.rows, range);
     const report = buildUsageReport({
-        rows: usageData.rows,
+        rows: filteredUsage.rows,
         quotaSnapshots: usageData.quotaSnapshots,
-        cutoff,
-        now,
-        minutes: options.minutes,
+        cutoff: range.fromDate,
+        now: range.toDate,
+        minutes: range.minutes,
         codexHome: options.codexHome,
         format: options.format,
         duplicateTokenCountEvents: usageData.duplicateTokenCountEvents,
+        range,
+        excludedSessionsWithoutTimestamps:
+            filteredUsage.excludedSessionsWithoutTimestamps,
     });
+    enforceReportLimits(report, range);
     const output = renderReport(report, options);
 
     if (options.saveHistory) {

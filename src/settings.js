@@ -8,6 +8,13 @@ import {
     DEFAULT_CODEX_HOME,
     DEFAULT_DATA_PATH,
     DEFAULT_DATETIME_FORMAT,
+    DEFAULT_IN_SCOPE,
+    DEFAULT_MAX_EVENTS,
+    DEFAULT_MAX_FILES,
+    DEFAULT_MAX_MODELS,
+    DEFAULT_MAX_SESSIONS,
+    DEFAULT_MAX_TURNS,
+    DEFAULT_RANGE_SCOPE,
     DEFAULT_STYLES_FILE_NAME,
 } from './constants.js';
 import { hasConfiguredPathSegment, joinConfiguredPath } from './path-utils.js';
@@ -19,6 +26,13 @@ const PROJECT_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
  * @property {string} codexHome Codex home folder to scan.
  * @property {string} dataPath Root folder used for app-managed data files.
  * @property {string} datetimeFormat Report datetime display format.
+ * @property {boolean} inScope Whether only complete sessions inside the range are included.
+ * @property {number} maxEvents Maximum event rows allowed in generated detail tables.
+ * @property {number} maxFiles Maximum session JSONL files allowed after file scanning.
+ * @property {number} maxModels Maximum model groups allowed in generated grouped tables.
+ * @property {number} maxSessions Maximum session rows allowed in generated tables.
+ * @property {number} maxTurns Maximum turn rows allowed in generated detail tables.
+ * @property {string} rangeScope Whether range matching uses events or whole sessions.
  * @property {string} styles HTML report stylesheet selection.
  */
 
@@ -38,6 +52,45 @@ export async function readAppEnvironment(processEnv = process.env) {
     const datetimeFormat =
         readSettingValue('DATETIME_FORMAT', fileEnv, processEnv) ??
         DEFAULT_DATETIME_FORMAT;
+    const inScope = readBooleanSetting(
+        'IN_SCOPE',
+        fileEnv,
+        processEnv,
+        DEFAULT_IN_SCOPE
+    );
+    const maxEvents = readLimitSetting(
+        'MAX_EVENTS',
+        fileEnv,
+        processEnv,
+        DEFAULT_MAX_EVENTS
+    );
+    const maxFiles = readLimitSetting(
+        'MAX_FILES',
+        fileEnv,
+        processEnv,
+        DEFAULT_MAX_FILES
+    );
+    const maxModels = readLimitSetting(
+        'MAX_MODELS',
+        fileEnv,
+        processEnv,
+        DEFAULT_MAX_MODELS
+    );
+    const maxSessions = readLimitSetting(
+        'MAX_SESSIONS',
+        fileEnv,
+        processEnv,
+        DEFAULT_MAX_SESSIONS
+    );
+    const maxTurns = readLimitSetting(
+        'MAX_TURNS',
+        fileEnv,
+        processEnv,
+        DEFAULT_MAX_TURNS
+    );
+    const rangeScope =
+        readSettingValue('RANGE_SCOPE', fileEnv, processEnv) ??
+        DEFAULT_RANGE_SCOPE;
     const styles =
         readSettingValue('STYLES', fileEnv, processEnv) ??
         DEFAULT_STYLES_FILE_NAME;
@@ -46,6 +99,13 @@ export async function readAppEnvironment(processEnv = process.env) {
         codexHome,
         dataPath,
         datetimeFormat,
+        inScope,
+        maxEvents,
+        maxFiles,
+        maxModels,
+        maxSessions,
+        maxTurns,
+        rangeScope,
         styles,
     };
 }
@@ -222,6 +282,59 @@ function readSettingValue(key, fileEnv, processEnv) {
     }
 
     return undefined;
+}
+
+/**
+ * Reads a boolean dotenv setting using the accepted user-facing values.
+ *
+ * @param {string} key Setting name.
+ * @param {Record<string, string>} fileEnv Values loaded from `.env`.
+ * @param {NodeJS.ProcessEnv} processEnv Values supplied by the shell.
+ * @param {boolean} defaultValue Fallback boolean when no setting is present.
+ * @returns {boolean} Parsed boolean value.
+ */
+function readBooleanSetting(key, fileEnv, processEnv, defaultValue) {
+    const value = readSettingValue(key, fileEnv, processEnv);
+
+    if (value === undefined) {
+        return defaultValue;
+    }
+
+    const normalized = value.trim().toLowerCase();
+
+    if (['true', '1', 'yes'].includes(normalized)) {
+        return true;
+    }
+    if (['false', '0', 'no'].includes(normalized)) {
+        return false;
+    }
+
+    throw new Error(`${key} must be one of: true, false, 1, 0, yes, no.`);
+}
+
+/**
+ * Reads a nonnegative row limit setting.
+ *
+ * @param {string} key Setting name.
+ * @param {Record<string, string>} fileEnv Values loaded from `.env`.
+ * @param {NodeJS.ProcessEnv} processEnv Values supplied by the shell.
+ * @param {number} defaultValue Fallback limit when no setting is present.
+ * @returns {number} Parsed limit value.
+ */
+function readLimitSetting(key, fileEnv, processEnv, defaultValue) {
+    const value = readSettingValue(key, fileEnv, processEnv);
+
+    if (value === undefined) {
+        return defaultValue;
+    }
+
+    const limit = Number(value);
+
+    if (!Number.isInteger(limit) || limit < 0) {
+        throw new Error(`${key} must be a positive integer or 0.`);
+    }
+
+    return limit;
 }
 
 /**

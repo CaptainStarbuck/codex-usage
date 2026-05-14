@@ -8,6 +8,13 @@ export const DEFAULT_DATETIME_FORMAT = 'MMM D, h:mm AP';
 export const DEFAULT_HISTORY_FILE_NAME = 'history.jsonl';
 export const DEFAULT_STYLES_FILE_NAME = 'styles-dark-01.css';
 export const DEFAULT_WINDOW_MINUTES = 15;
+export const DEFAULT_RANGE_SCOPE = 'events';
+export const DEFAULT_IN_SCOPE = false;
+export const DEFAULT_MAX_EVENTS = 500;
+export const DEFAULT_MAX_SESSIONS = 500;
+export const DEFAULT_MAX_FILES = 0;
+export const DEFAULT_MAX_TURNS = 0;
+export const DEFAULT_MAX_MODELS = 0;
 export const SESSION_DIR_NAMES = ['sessions', 'archived_sessions'];
 export const TOKEN_FIELDS = [
     'input_tokens',

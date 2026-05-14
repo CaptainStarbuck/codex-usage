@@ -1,4 +1,50 @@
-# Codex Usage v1.2.0
+# Codex Usage v1.2.2-alpha.1 (Filtering)
+
+> This build is dedicated to new session/event filtering and **will** change.  
+> Please post comments in [Issues #4](https://github.com/CaptainStarbuck/codex-usage/issues/4).  
+> Usage follows. See also [docs](docs/index.md) for CLI syntax.
+
+```bash
+Usage: node src/codex-usage.js [options]
+ --minutes <min>       Show previous N minutes
+ --from-date <date>    Start date or date/time (2026-05-13T19:00, 5/13, 5/13/26)
+ --from-minutes <min>  Start at now minus minutes
+ --to-date <date>      End date or date/time
+ --to-minutes <min>    End at now minus minutes
+ --scope <scope>       Range scope: events or sessions (default --scope sessions)
+ --in-scope            Include only complete sessions (default not in scope)
+ --max-events <count>  Max events per detail table (alpha default is 500)
+ --max-sessions <num>  Max sessions per table      (alpha default is 500)
+ --max-files <count>   Max session files scanned
+ --max-turns <count>   Max turns per detail table  (alpha not yet supported)
+ --max-models <count>  Max model groups per table
+ --codex-home <path>   Codex home folder to scan
+ --data-path <path>    App data and history folder
+ --format <format>     Output: text, json, or html (default text)
+ --out <path>          Write report to file        (default /tmp/codex-usage)
+ --styles <style>      HTML style: light, dark, or path (default dark)
+ --style <style>       Alias for --styles
+ --interval <sec>      Regenerate output every N seconds
+ --force-refresh       Add browser refresh to HTML output
+ --save-history        Append local history snapshot
+ --history <path>      History file path and enable save
+ -h, --help            Show this help and quit
+```
+
+Examples:
+
+```bash
+$ node src/codex-usage.js \
+    --from-date 2026-05-13T19:00:00 \
+    --to-date 2026-05-13T21:00:00 \
+    --scope sessions \
+    --in-scope \
+    --max-events 1900
+Codex token usage from May 13, 7:00:00 PM to May 13, 9:00:00 PM
+
+$ node src/codex-usage.js --from-date 5/1 --to-date 5/6
+Codex token usage from May 1, 12:00:00 AM to May 6, 12:00:00 AM // beginning of day
+```
 
 ## TL;DR
 
@@ -85,7 +131,10 @@ Options include:
 - Output to terminal or a file
 - Send data to a custom folder
 - Render plain text, JSON, or standalone HTML
-- Only include data from the previous N minutes
+- Include data from rolling, absolute, or bounded time ranges
+- Choose event-based or session-based range matching
+- Require complete sessions inside a selected range
+- Guard large detail tables with configurable event and session limits
 - Regenerate the browser report every 10 seconds, make the open page refresh itself, and pause or resume browser refreshes from the page
 - Maintain a compact local history snapshot of processed data
 
@@ -101,6 +150,7 @@ Data is written by default to `/tmp/codex-usage` through `.env` `DATA_PATH`. On 
 Codex session data is read from the current user's `.codex` folder by default, or from `.env` CODEX_HOME when configured.
 HTML report styling is selected by `.env` `STYLES`.
 The `.env` file supports `DATETIME_FORMAT`.
+Range filtering defaults can be configured with `RANGE_SCOPE`, `IN_SCOPE`, `MAX_EVENTS`, `MAX_SESSIONS`, `MAX_FILES`, `MAX_TURNS`, and `MAX_MODELS`.
 Windows drive paths are supported in `.env` and CLI options. Quote paths that contain spaces.
 Invalid OS paths for output folders result in a runtime error.
 
@@ -109,6 +159,13 @@ DATA_PATH="C:\Users\example\Codex Usage"
 CODEX_HOME="C:\Users\example"
 STYLES=styles-dark-01.css
 DATETIME_FORMAT=MMM D, h:mm AP
+RANGE_SCOPE=events
+IN_SCOPE=false
+MAX_EVENTS=500
+MAX_SESSIONS=500
+MAX_FILES=0
+MAX_TURNS=0
+MAX_MODELS=0
 ```
 
 ## Documentation

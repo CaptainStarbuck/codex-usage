@@ -2,7 +2,7 @@
 
 ## Feature Overview
 
-The report turns local Codex session JSONL data into usage analytics for a rolling time window. It supports text, JSON, and standalone HTML output; optional interval regeneration; optional browser auto-refresh for HTML output; quota snapshot reporting; usage insights; model and session summaries; and opt-in local history capture.
+The report turns local Codex session JSONL data into usage analytics for a selected time range. It supports text, JSON, and standalone HTML output; optional interval regeneration; optional browser auto-refresh for HTML output; quota snapshot reporting; usage insights; model and session summaries; and opt-in local history capture.
 
 ## Report Model
 
@@ -16,6 +16,9 @@ The CLI builds one structured report object before rendering text, JSON, or HTML
 - `models` with grouped model summaries
 - `insights` with warnings and notices
 - `metadata` with report generation details
+- `metadata.range` with normalized range settings
+
+`window.cutoff` is the inclusive range start. `window.now` is the exclusive range end. For the default rolling range, `window.now` is the report run time. For bounded ranges, `window.now` is the normalized `toDate`.
 
 ## Normalized Rows
 
@@ -48,11 +51,11 @@ The timeline uses inline SVG and stacks cached input, effective input, output, a
 
 The Output Token Timeline uses the same bucket timing as the main timeline, but only stacks output tokens and reasoning output tokens. Its vertical scale is based on output-token values instead of mixed input and output volume.
 
-The Models table groups event rows by model and intelligence level. Each summary row displays the model and level together in the Model column, sorted by model name and then `low`, `medium`, `high`, and `xhigh`. Collapsed summary rows use the same token column order and labels as the Sessions table, starting with Input Tokens. Expanding a model row shows a Sessions table that contains only events for that model and intelligence level. The nested Sessions table omits the Model column, aggregates token data for matching events in each session, and expands to show a nested Events table that also omits the Model column. Expanded Models rows are stored in browser `localStorage`, scoped to the report file path, Codex home, and report window length.
+The Models table groups event rows by model and intelligence level. Each summary row displays the model and level together in the Model column, sorted by model name and then `low`, `medium`, `high`, and `xhigh`. Collapsed summary rows use the same token column order and labels as the Sessions table, starting with Input Tokens. Expanding a model row shows a Sessions table that contains only events for that model and intelligence level. The nested Sessions table omits the Model column, aggregates token data for matching events in each session, and expands to show a nested Events table that also omits the Model column. Expanded Models rows are stored in browser `localStorage`, scoped to the report file path, Codex home, range start, range end, range scope, and complete-session setting.
 
 The Summary cards are grouped into rows for input, output, and totals. The Summary cards and Sessions table keep token displays in the order Input Tokens, Cached Input Tokens, Effective Input Tokens, Cache Hit Rate, Output Tokens, Reasoning Output Tokens, and Total Tokens. The main Sessions table includes one collapsed row per session. Its Started column displays the timestamp for event index 1, its Session column displays only the compact session hash, its Models column can list multiple `model/intelligence` values, and its token columns display aggregate totals for that session. Expanding a session row shows the event detail table with the same event fields as before, except the Session column is labeled Event and displays only the event index. Numeric column headers and values are right-aligned. Full session file paths appear in the Session Paths card at the bottom of the report.
 
-Expanded rows and the active sort order are stored in browser `localStorage`, scoped to the report file path, Codex home, and report window length. This keeps the Sessions table stable across browser refreshes when regenerated reports still contain the same session rows.
+Expanded rows and the active sort order are stored in browser `localStorage`, scoped to the report file path, Codex home, range start, range end, range scope, and complete-session setting. This keeps the Sessions table stable across browser refreshes when regenerated reports still contain the same session rows.
 
 ## Text And JSON Reports
 
@@ -82,7 +85,7 @@ For HTML interval output, `--force-refresh` embeds a page reload timer at `inter
 
 ## CLI Options
 
-The command supports `--minutes`, `--codex-home`, `--data-path`, `--format`, `--out`, `--styles`, `--style`, `--interval`, `--force-refresh`, `--save-history`, `--history`, `--help`, and `-h`. Windows paths are supported for folder and file options. [cli-reference.md](./cli-reference.md) contains defaults, constraints, and examples.
+The command supports range options, output options, interval options, history options, and path configuration options. Windows paths are supported for folder and file options. [cli-reference.md](./cli-reference.md) contains defaults, constraints, and examples.
 
 ## History
 

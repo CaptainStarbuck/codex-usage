@@ -7,7 +7,7 @@ import { normalizeUsageRows } from './usage-normalizer.js';
 /**
  * Builds the structured report model consumed by every renderer.
  *
- * @param {{ rows: object[], quotaSnapshots?: object[], duplicateTokenCountEvents?: number, cutoff: Date, now: Date, minutes: number, codexHome: string, format: string }} input Report inputs.
+ * @param {{ rows: object[], quotaSnapshots?: object[], duplicateTokenCountEvents?: number, cutoff: Date, now: Date, minutes: number, codexHome: string, format: string, range?: object, excludedSessionsWithoutTimestamps?: number }} input Report inputs.
  * @returns {object} Structured usage report.
  */
 export function buildUsageReport(input) {
@@ -41,11 +41,45 @@ export function buildUsageReport(input) {
             duplicate_token_count_events_ignored: Number(
                 input.duplicateTokenCountEvents ?? 0
             ),
+            excluded_sessions_without_timestamps: Number(
+                input.excludedSessionsWithoutTimestamps ?? 0
+            ),
+            range: normalizeRangeMetadata(input.range),
         },
     };
 
     report.insights = buildInsights(report);
     return report;
+}
+
+/**
+ * Builds JSON-safe metadata for normalized range settings.
+ *
+ * @param {object | undefined} range Normalized range settings.
+ * @returns {object | undefined} Report range metadata.
+ */
+function normalizeRangeMetadata(range) {
+    if (!range) {
+        return undefined;
+    }
+
+    return {
+        from_date:
+            range.fromDate instanceof Date
+                ? range.fromDate.toISOString()
+                : undefined,
+        to_date:
+            range.toDate instanceof Date
+                ? range.toDate.toISOString()
+                : undefined,
+        scope: String(range.scope ?? ''),
+        in_scope: Boolean(range.inScope),
+        max_events: Number(range.maxEvents ?? 0),
+        max_files: Number(range.maxFiles ?? 0),
+        max_models: Number(range.maxModels ?? 0),
+        max_sessions: Number(range.maxSessions ?? 0),
+        max_turns: Number(range.maxTurns ?? 0),
+    };
 }
 
 /**

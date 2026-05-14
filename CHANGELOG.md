@@ -3,6 +3,14 @@
 These are functional changes to the package, worthy of note to users.  
 More details for developers are provided in `docs/DEVELOPER_CHANGELOG.md`.
 
+## 2026-05-14 / v1.2.2-alpha.1
+
+- Added explicit range selection options: `--from-date`, `--from-minutes`, `--to-date`, and `--to-minutes`.
+- Added month/day parsing for range dates without a year, using the current year or the prior year when the requested month/day is after the current date.
+- Added `--scope events` and `--scope sessions` for event-based or whole-session range matching.
+- Added `--in-scope` to include only sessions that are complete within the selected range.
+- Added detail safety limits through `--max-events`, `--max-sessions`, `--max-files`, `--max-turns`, `--max-models`, and matching `.env` values.
+
 ## 2026-05-14 / v1.2.1
 
 - Text report Summary output now matches the HTML Summary card order, labels, and values, including Events.

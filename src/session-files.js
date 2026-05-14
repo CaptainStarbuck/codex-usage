@@ -7,9 +7,10 @@ import { joinConfiguredPath } from './path-utils.js';
  *
  * @param {string} codexHome Codex home directory.
  * @param {Date} cutoff Earliest event timestamp to report.
+ * @param {number} maxFiles Maximum session files allowed after scanning, or 0.
  * @returns {Promise<string[]>} Matching session file paths.
  */
-export async function findSessionFiles(codexHome, cutoff) {
+export async function findSessionFiles(codexHome, cutoff, maxFiles = 0) {
     const minMtime = cutoff.getTime() - 60 * 60 * 1000;
     const fileGroups = await Promise.all(
         SESSION_DIR_NAMES.map((dirName) =>
@@ -18,7 +19,25 @@ export async function findSessionFiles(codexHome, cutoff) {
     );
     const files = fileGroups.flat();
 
+    enforceFileLimit(files.length, maxFiles);
     return files.sort();
+}
+
+/**
+ * Throws when file scanning finds more session files than the configured limit.
+ *
+ * @param {number} actual Actual file count.
+ * @param {number} limit Configured file limit, or 0 for unlimited.
+ * @returns {void}
+ */
+function enforceFileLimit(actual, limit) {
+    if (limit === 0 || actual <= limit) {
+        return;
+    }
+
+    throw new Error(
+        `Report detail limit exceeded: session file scan would include ${actual} files, above --max-files=${limit}. Increase --max-files or MAX_FILES to render this report.`
+    );
 }
 
 /**
